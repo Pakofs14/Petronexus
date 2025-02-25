@@ -272,190 +272,293 @@ Widget build(BuildContext context) {
     });
   }
 
-  Future<void> _generateAndDownloadPdf(Map<String, dynamic> registro) async {
-    final pdf = pw.Document();
-    final roboto = pw.Font.ttf(await rootBundle.load('assets/fonts/Roboto-Regular.ttf'));
-    final robotoBold = pw.Font.ttf(await rootBundle.load('assets/fonts/Roboto-Bold.ttf'));
-
-    Future<pw.Widget?> processImage(String? imageUrl, String label) async {
-      if (imageUrl == null) {
-        print('$label: URL de imagen no proporcionada');
-        return pw.Text('$label: No disponible');
-      }
-      try {
-        final response = await http.get(Uri.parse(imageUrl));
-        if (response.statusCode != 200) {
-          print('$label: Error al cargar la imagen. Código de estado: ${response.statusCode}');
-          return pw.Text('$label: Error al cargar');
-        }
-        final imageBytes = response.bodyBytes;
-        final image = pw.MemoryImage(imageBytes);
-        print('$label: Imagen cargada con éxito');
-        return pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Text(label, style: pw.TextStyle(font: robotoBold)),
-            pw.SizedBox(height: 5),
-            pw.Container(
-              width: 200,  // Reducido el ancho para que se ajusten mejor las imágenes
-              height: 120,  // Reducido el alto
-              decoration: pw.BoxDecoration(border: pw.Border.all(width: 1)),
-              child: pw.Image(image, fit: pw.BoxFit.contain),
+  Future<void> showLoadingDialog(BuildContext context) {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
             ),
-            pw.SizedBox(height: 10),
-          ],
+            elevation: 5,
+            content: Container(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 20),
+                  Text(
+                    'Generando reporte...',
+                    style: TextStyle(fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
-      } catch (e) {
-        print('$label: Error al cargar la imagen: $e');
-        return pw.Text('$label: No disponible');
-      }
-    }
+      },
+    );
+  }
 
-    final imageWidgets = await Future.wait([
-      processImage(registro['Foto Placas']?[0]['url'], 'Foto de las Placas'),
-      processImage(registro['Foto Unidad']?[0]['url'], 'Foto de la Unidad'),
-      processImage(registro['Foto Ticket']?[0]['url'], 'Foto del Ticket'),
-      processImage(registro['Foto Odometro']?[0]['url'], 'Foto del Odómetro'),
-    ]);
+  void hideLoadingDialog(BuildContext context) {
+    Navigator.of(context).pop();
+  }
 
-    // Verifica si las imágenes se cargaron correctamente
-    print('Total de imágenes cargadas: ${imageWidgets.length}');
+  Future<void> _generateAndDownloadPdf(Map<String, dynamic> registro) async {
+    // Mostrar el diálogo de carga
+    showLoadingDialog(context);
+    
+    try {
+      final pdf = pw.Document();
+      final roboto = pw.Font.ttf(await rootBundle.load('assets/fonts/Roboto-Regular.ttf'));
+      final robotoBold = pw.Font.ttf(await rootBundle.load('assets/fonts/Roboto-Bold.ttf'));
 
-    pdf.addPage(
-      pw.Page(
-        build: (pw.Context context) {
+      Future<pw.Widget?> processImage(String? imageUrl, String label) async {
+        if (imageUrl == null) {
+          print('$label: URL de imagen no proporcionada');
+          return pw.Text('$label: No disponible');
+        }
+        try {
+          final response = await http.get(Uri.parse(imageUrl));
+          if (response.statusCode != 200) {
+            print('$label: Error al cargar la imagen. Código de estado: ${response.statusCode}');
+            return pw.Text('$label: Error al cargar');
+          }
+          final imageBytes = response.bodyBytes;
+          final image = pw.MemoryImage(imageBytes);
+          print('$label: Imagen cargada con éxito');
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Header(
-                level: 0,
-                child: pw.Text('Reporte de Carga de Gasolina',
-                    style: pw.TextStyle(font: robotoBold, fontSize: 24)),
+              pw.Text(label, style: pw.TextStyle(font: robotoBold)),
+              pw.SizedBox(height: 5),
+              pw.Container(
+                width: 450,
+                height: 250,
+                decoration: pw.BoxDecoration(border: pw.Border.all(width: 1)),
+                child: pw.Image(image, fit: pw.BoxFit.contain),
               ),
-              pw.SizedBox(height: 20),
-              pw.Table.fromTextArray(
-                context: context,
-                data: [
-                  ['Operador', 'Gasolinera', 'Fecha', 'Hora', 'Placas', 'Importe', 'Litros'],
-                  [
-                    registro['Nombre Operador'] ?? '',
-                    registro['Nombre Gasolinera'] ?? '',
-                    registro['Fecha'] ?? '',
-                    registro['Hora'] ?? '',
-                    registro['Placas'] ?? '',
-                    registro['Importe']?.toString() ?? '',
-                    registro['Litros']?.toString() ?? '',
-                  ],
-                ],
-                headerStyle: pw.TextStyle(font: robotoBold),
-                cellStyle: pw.TextStyle(font: roboto),
-              ),
-              pw.SizedBox(height: 20),
-              // Verifica las imágenes antes de agregarlas al PDF
-              ...imageWidgets.whereType<pw.Widget>().toList(),
+              pw.SizedBox(height: 10),
             ],
           );
-        },
-      ),
-    );
+        } catch (e) {
+          print('$label: Error al cargar la imagen: $e');
+          return pw.Text('$label: No disponible');
+        }
+      }
 
-    final bytes = await pdf.save();
-    final blob = html.Blob([bytes], 'application/pdf');
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    final anchor = html.document.createElement('a') as html.AnchorElement
-      ..href = url
-      ..download = 'reporte_gasolina_${registro['Nombre Operador']}.pdf';
-    html.document.body?.children.add(anchor);
-    anchor.click();
-    html.document.body?.children.remove(anchor);
-    html.Url.revokeObjectUrl(url);
-  }
+      // Lista para almacenar widgets de imágenes
+      List<pw.Widget> imageWidgets = [];
 
-Future<void> _downloadExcel(List<Map<String, dynamic>> registros) async {
-  var excel = Excel.createExcel();
-  var sheet = excel['Sheet1'];
+      // Procesar cada imagen y agregarla a la lista
+      final placasWidget = await processImage(registro['Foto Placas']?[0]['url'], 'Foto de las Placas');
+      final unidadWidget = await processImage(registro['Foto Unidad']?[0]['url'], 'Foto de la Unidad');
+      final ticketWidget = await processImage(registro['Foto Ticket']?[0]['url'], 'Foto del Ticket');
+      final odometroWidget = await processImage(registro['Foto Odometro']?[0]['url'], 'Foto del Odómetro');
 
-  // Definir los encabezados de las columnas
-  sheet.appendRow([
-    'Operador',
-    'Gasolinera',
-    'Fecha',
-    'Hora',
-    'Placas',
-    'Importe',
-    'Litros',
-    'Foto Placas',
-    'Foto Unidad',
-    'Foto Ticket',
-    'Foto Odometro',
-  ]);
+      if (placasWidget != null) imageWidgets.add(placasWidget);
+      if (unidadWidget != null) imageWidgets.add(unidadWidget);
+      if (ticketWidget != null) imageWidgets.add(ticketWidget);
+      if (odometroWidget != null) imageWidgets.add(odometroWidget);
 
-  // Llenar la hoja con los datos de los registros
-  for (var registro in registros) {
-    // Obtener los URLs de las imágenes
-    final fotoPlacasUrl = registro['Foto Placas']?[0]['url'] ?? '';
-    final fotoUnidadUrl = registro['Foto Unidad']?[0]['url'] ?? '';
-    final fotoTicketUrl = registro['Foto Ticket']?[0]['url'] ?? '';
-    final fotoOdometroUrl = registro['Foto Odometro']?[0]['url'] ?? '';
+      // Imprimir para depuración
+      print('Total de imágenes cargadas: ${imageWidgets.length}');
 
-    // Verificar el acceso a las imágenes
-    await _testImageAccess(fotoPlacasUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
-    await _testImageAccess(fotoUnidadUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
-    await _testImageAccess(fotoTicketUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
-    await _testImageAccess(fotoOdometroUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
+      // Función para agregar una página con un conjunto de imágenes
+      void addImagePage(List<pw.Widget> images, String title) {
+        pdf.addPage(
+          pw.Page(
+            build: (pw.Context context) {
+              return pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Header(
+                    level: 0,
+                    child: pw.Text(title, style: pw.TextStyle(font: robotoBold, fontSize: 24)),
+                  ),
+                  pw.SizedBox(height: 20),
+                  ...images, // Agregar todas las imágenes de esta página
+                ],
+              );
+            },
+          ),
+        );
+      }
 
-    // Crear una fila con los datos
-    sheet.appendRow([
-      registro['Nombre Operador'] ?? '',
-      registro['Nombre Gasolinera'] ?? '',
-      registro['Fecha'] ?? '',
-      registro['Hora'] ?? '',
-      registro['Placas'] ?? '',
-      registro['Importe']?.toString() ?? '',
-      registro['Litros']?.toString() ?? '',
-      fotoPlacasUrl, // URL de la foto de las placas
-      fotoUnidadUrl, // URL de la foto de la unidad
-      fotoTicketUrl, // URL de la foto del ticket
-      fotoOdometroUrl, // URL de la foto del odómetro
-    ]);
-  }
+      // Primera página - Información general
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Header(
+                  level: 0,
+                  child: pw.Text('Reporte de Carga de Gasolina',
+                      style: pw.TextStyle(font: robotoBold, fontSize: 24)),
+                ),
+                pw.SizedBox(height: 20),
+                pw.Table.fromTextArray(
+                  context: context,
+                  tableWidth: pw.TableWidth.max,
+                  headerStyle: pw.TextStyle(font: robotoBold),
+                  cellStyle: pw.TextStyle(font: roboto),
+                  headers: ['Campo', 'Valor'],
+                  data: [
+                    ['Operador', registro['Nombre Operador'] ?? ''],
+                    ['Gasolinera', registro['Nombre Gasolinera'] ?? ''],
+                    ['Fecha', registro['Fecha'] ?? ''],
+                    ['Hora', registro['Hora'] ?? ''],
+                    ['Placas', registro['Placas'] ?? ''],
+                    ['Importe', '\$${registro['Importe']?.toStringAsFixed(2) ?? ''}'],
+                    ['Litros', '${registro['Litros']?.toStringAsFixed(2) ?? ''} L'],
+                    ['Odometro', '${registro['Odometro']?.toStringAsFixed(0) ?? ''} '],
+                  ],
+                ),
+                pw.SizedBox(height: 20),
+              ],
+            );
+          },
+        ),
+      );
 
-  // Convertir el archivo Excel a bytes
-  var excelBytes = excel.encode();
+      // Dividir las imágenes en grupos para mostrarlas en páginas separadas
+      const int imagesPerPage = 2; // Número de imágenes por página
+      for (var i = 0; i < imageWidgets.length; i += imagesPerPage) {
+        final end = (i + imagesPerPage < imageWidgets.length) ? i + imagesPerPage : imageWidgets.length;
+        final pageImages = imageWidgets.sublist(i, end);
+        addImagePage(pageImages, 'Reporte de Carga de Gasolina (Página ${i ~/ imagesPerPage + 1})');
+      }
 
-  if (excelBytes != null) {
-    // Crear un Blob con los bytes del archivo Excel
-    final blob = html.Blob([Uint8List.fromList(excelBytes)], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    final url = html.Url.createObjectUrlFromBlob(blob);
+      // Guardar y descargar el PDF
+      final bytes = await pdf.save();
+      final blob = html.Blob([bytes], 'application/pdf');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.document.createElement('a') as html.AnchorElement
+        ..href = url
+        ..download = 'reporte_gasolina_${registro['Nombre Operador'] ?? 'reporte'}.pdf';
+      html.document.body?.children.add(anchor);
+      anchor.click();
+      html.document.body?.children.remove(anchor);
+      html.Url.revokeObjectUrl(url);
 
-    // Crear un enlace de descarga
-    final anchor = html.document.createElement('a') as html.AnchorElement
-      ..href = url
-      ..download = 'reporte_gasolina.xlsx';
-    html.document.body?.children.add(anchor);
-    anchor.click();
-    html.document.body?.children.remove(anchor);
-    html.Url.revokeObjectUrl(url);
-  }
-}
-Future<void> _testImageAccess(String imageUrl, String authToken) async {
-  try {
-    final response = await http.get(
-      Uri.parse(imageUrl),
-      headers: {
-        'Authorization': 'Bearer $authToken',
-      },
-    );
+      // Ocultar el diálogo de carga
+      hideLoadingDialog(context);
 
-    if (response.statusCode == 200) {
-      print('La imagen es accesible');
-    } else {
-      print('Error al acceder a la imagen: ${response.statusCode}');
+      // Mostrar mensaje de éxito
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('¡Descarga exitosa!'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      // Ocultar el diálogo de carga si hay un error
+      hideLoadingDialog(context);
+      
+      // Mostrar mensaje de error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al generar el PDF: $e'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
-  } catch (e) {
-    print('Excepción al acceder a la imagen: $e');
   }
-}
+    
+  Future<void> _downloadExcel(List<Map<String, dynamic>> registros) async {
+    var excel = Excel.createExcel();
+    var sheet = excel['Sheet1'];
+
+    // Definir los encabezados de las columnas
+    sheet.appendRow([
+      'Operador',
+      'Gasolinera',
+      'Fecha',
+      'Hora',
+      'Placas',
+      'Importe',
+      'Litros',
+      'Foto Placas',
+      'Foto Unidad',
+      'Foto Ticket',
+      'Foto Odometro',
+    ]);
+
+    // Llenar la hoja con los datos de los registros
+    for (var registro in registros) {
+      // Obtener los URLs de las imágenes
+      final fotoPlacasUrl = registro['Foto Placas']?[0]['url'] ?? '';
+      final fotoUnidadUrl = registro['Foto Unidad']?[0]['url'] ?? '';
+      final fotoTicketUrl = registro['Foto Ticket']?[0]['url'] ?? '';
+      final fotoOdometroUrl = registro['Foto Odometro']?[0]['url'] ?? '';
+
+      // Verificar el acceso a las imágenes
+      await _testImageAccess(fotoPlacasUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
+      await _testImageAccess(fotoUnidadUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
+      await _testImageAccess(fotoTicketUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
+      await _testImageAccess(fotoOdometroUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
+
+      // Crear una fila con los datos
+      sheet.appendRow([
+        registro['Nombre Operador'] ?? '',
+        registro['Nombre Gasolinera'] ?? '',
+        registro['Fecha'] ?? '',
+        registro['Hora'] ?? '',
+        registro['Placas'] ?? '',
+        registro['Importe']?.toString() ?? '',
+        registro['Litros']?.toString() ?? '',
+        fotoPlacasUrl, // URL de la foto de las placas
+        fotoUnidadUrl, // URL de la foto de la unidad
+        fotoTicketUrl, // URL de la foto del ticket
+        fotoOdometroUrl, // URL de la foto del odómetro
+      ]);
+    }
+
+    // Convertir el archivo Excel a bytes
+    var excelBytes = excel.encode();
+
+    if (excelBytes != null) {
+      // Crear un Blob con los bytes del archivo Excel
+      final blob = html.Blob([Uint8List.fromList(excelBytes)], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+
+      // Crear un enlace de descarga
+      final anchor = html.document.createElement('a') as html.AnchorElement
+        ..href = url
+        ..download = 'reporte_gasolina.xlsx';
+      html.document.body?.children.add(anchor);
+      anchor.click();
+      html.document.body?.children.remove(anchor);
+      html.Url.revokeObjectUrl(url);
+    }
+  }
+
+  Future<void> _testImageAccess(String imageUrl, String authToken) async {
+    try {
+      final response = await http.get(
+        Uri.parse(imageUrl),
+        headers: {
+          'Authorization': 'Bearer $authToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print('La imagen es accesible');
+      } else {
+        print('Error al acceder a la imagen: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Excepción al acceder a la imagen: $e');
+    }
+  }
 
 }
 
