@@ -38,13 +38,14 @@ class _ReportePageState extends State<ReportePage> {
   String? _fotoOdometroUrl;
 
   // Estados de validación existentes
-  bool _isOperadorValid = false;
-  bool _isGasolineraValid = false;
   bool _isImporteValid = false;
   bool _isLitrosValid = false;
-  bool _isPlacasValid = false;
   bool _isOdometroValid = false;
-  bool _isOdometroUltimoValid = false;
+    // Variables de estado para validación
+  bool _isOperadorValid = false;
+  bool _isGasolineraValid = false;
+  bool _isTipoGasolinaValid = false;
+  bool _isPlacasValid = false; // Estado de validación para el campo de placas
 
   // Precio por litro calculado
   String _precioPorLitro = '';
@@ -52,18 +53,17 @@ class _ReportePageState extends State<ReportePage> {
   String? _operadorSeleccionado;
   // Lista de gasolineras
   final List<String> _gasolineras = [
-'ADMINISTRADORA DE GASOLINERAS ESMEGAS',
-'COMBUSTIBLES REAL S.A. DE C.V.',
-'DISTRIBUIDORA ENERGETICOS LA FE',
-'ESTACION DE SERVICIO FRAGOSO',
-'GASOLINERA EL JAIBO SA. DE CV., PANUCO, VER.',
-'GASOLINERA ENERGETICOS EXPRESS DE TAMAULIPAS',
-'GASOLINERA LOS TOROS',
-'GASOLINERA CHOCO GAS S.A. DE C.V.',
-'SERVICIOS INTEGRADOS DEL SUERTE DE VERACRUZ.',
+    'ADMINISTRADORA DE GASOLINERAS ESMEGAS',
+    'COMBUSTIBLES REAL S.A. DE C.V.',
+    'DISTRIBUIDORA ENERGETICOS LA FE',
+    'ESTACION DE SERVICIO FRAGOSO',
+    'GASOLINERA EL JAIBO SA. DE CV., PANUCO, VER.',
+    'GASOLINERA ENERGETICOS EXPRESS DE TAMAULIPAS',
+    'GASOLINERA LOS TOROS',
+    'GASOLINERA CHOCO GAS S.A. DE C.V.',
+    'SERVICIOS INTEGRADOS DEL SUERTE DE VERACRUZ.',
   ];
-
-  // Lista de Operadores
+  
   final List<String> _operadores = [
     'Adrian Santoyo Contreras',
     'Adrian Trujillo Reyes',
@@ -137,8 +137,77 @@ class _ReportePageState extends State<ReportePage> {
     'Zeferino de la Luna Perez',
   ];
 
-  // Tipo de gasolina seleccionada
-  String? _tipoGasolina;
+  final List<String> _placasPredefinidas = [
+    'GZ6352B',
+    'GY1105D',
+    'GY3840D',
+    'HC2385A',
+    'HD5130A',
+    'HD5316A',
+    'HD5317A',
+    'HD5318A',
+    'HD5322A',
+    'HD5324A',
+    'HD5327A',
+    'LB56635',
+    'LJS018B',
+    'LJS020B',
+    'LJS032B',
+    'LJS036B',
+    'LKD446A',
+    'LKK810A',
+    'MAF4415',
+    'MGG6453',
+    'MJZ7160',
+    'MRF1787',
+    'MRF5374',
+    'MRF5385',
+    'MTZ2442',
+    'MTZ2445',
+    'MTZ2446',
+    'MTZ2454',
+    'MTZ2456',
+    'MTZ2463',
+    'MTZ2466',
+    'MTZ2482',
+    'MTZ2496',
+    'MTZ2497',
+    'MTZ8632',
+    'MTZ8635',
+    'MUK8290',
+    'MUK8353',
+    'MUK8355',
+    'MUK8381',
+    'MUN5051',
+    'MUN5064',
+    'MUN5079',
+    'MUN5081',
+    'MUN5098',
+    'MUN5142',
+    'MUN5165',
+    'MUN5171',
+    'MUT9031',
+    'MXJ5267',
+    'NFW748A',
+    'NFW755A',
+    'NFW759A',
+    'NFY991A',
+    'NFY997A',
+    'NNS195A',
+    'NNS199A',
+    'NNS205A',
+    'NNS209A',
+    'NNS213A',
+    'NNS217A',
+    'NRA673A',
+    'NRA677A',
+    'NRB809A',
+    'NW82877',
+    'PAZ9825',
+    'WM29012',
+  ];
+    // Tipo de gasolina seleccionada
+    String? _tipoGasolina;
 
   @override
   void initState() {
@@ -150,7 +219,6 @@ class _ReportePageState extends State<ReportePage> {
     _litrosFocusNode.addListener(() => _onFocusChange(_litrosFocusNode, _validateLitros));
     _placasFocusNode.addListener(() => _onFocusChange(_placasFocusNode, _validatePlacas));
     _odometroFocusNode.addListener(() => _onFocusChange(_odometroFocusNode, _validateOdometro));
-    _odometroUltimoFocusNode.addListener(() => _onFocusChange(_odometroUltimoFocusNode, _validateOdometroUltimo));
     _gasolineraController.text = 'GASOLINERA LOS TOROS';
     _validateGasolinera('GASOLINERA LOS TOROS');
   }
@@ -183,17 +251,24 @@ class _ReportePageState extends State<ReportePage> {
     if (focusNode == _odometroUltimoFocusNode) return _odometroUltimoController.text;
     return '';
   }
+  
+  void _actualizarOdometroUltimo(String placa) async {
+    if (placa.isEmpty) {
+      setState(() {
+        _odometroUltimoController.text = ''; // Limpiar el campo si no hay placa
+      });
+      return;
+    }
 
-  void _validateOperador(String? value) {
+    final ultimoOdometro = await _obtenerUltimoOdometro(placa);
     setState(() {
-      _isOperadorValid = value != null && value.isNotEmpty;
+      _odometroUltimoController.text = ultimoOdometro?.toString() ?? 'No hay odómetro registrado';
     });
   }
 
-  void _validateGasolinera(String value) {
-    setState(() {
-      _isGasolineraValid = value.isNotEmpty;
-    });
+  void _onPlacasChanged(String value) {
+    _validatePlacas(value); // Validar el campo de placas
+    _actualizarOdometroUltimo(value); // Actualizar el odómetro último
   }
 
   void _validateImporte(String value) {
@@ -207,11 +282,14 @@ class _ReportePageState extends State<ReportePage> {
       _isLitrosValid = value.isNotEmpty && RegExp(r'^\d+(\.\d{1,2})?$').hasMatch(value);
     });
   }
-
+  
   void _validatePlacas(String value) {
-    setState(() {
-      _isPlacasValid = value.isNotEmpty && RegExp(r'^[a-zA-Z0-9]+$').hasMatch(value) && value.length <= 10;
-    });
+    bool isValid = value.isNotEmpty && RegExp(r'^[a-zA-Z0-9]+$').hasMatch(value) && value.length <= 7;
+    if (_isPlacasValid != isValid) {
+      setState(() {
+        _isPlacasValid = isValid;
+      });
+    }
   }
 
   void _validateOdometro(String value) {
@@ -220,9 +298,21 @@ class _ReportePageState extends State<ReportePage> {
     });
   }
 
-  void _validateOdometroUltimo(String value) {
+  void _validateOperador(String? value) {
     setState(() {
-      _isOdometroUltimoValid = value.isNotEmpty && RegExp(r'^\d+$').hasMatch(value) && value.length <= 10;
+      _isOperadorValid = value != null && value.isNotEmpty;
+    });
+  }
+
+  void _validateGasolinera(String value) {
+    setState(() {
+      _isGasolineraValid = value.isNotEmpty;
+    });
+  }
+
+  void _validateTipoGasolina(String? value) {
+    setState(() {
+      _isTipoGasolinaValid = value != null && value.isNotEmpty;
     });
   }
 
@@ -439,7 +529,7 @@ class _ReportePageState extends State<ReportePage> {
       });
     }
   }
-
+    
   @override
   Widget build(BuildContext context) {
     // Obtenemos el tamaño de la pantalla para adaptaciones
@@ -470,7 +560,7 @@ class _ReportePageState extends State<ReportePage> {
                     label: 'Nombre del Operador',
                     description: 'Seleccione el nombre del operador.',
                     isSmallScreen: isSmallScreen,
-                  ),      
+                  ),
                   _buildDropdownGasolinera(
                     label: 'Nombre de la Gasolinera',
                     description: 'Seleccione la gasolinera donde se realizó la carga.',
@@ -481,30 +571,17 @@ class _ReportePageState extends State<ReportePage> {
                     initialValue: _fechaHoy,
                     description: 'Fecha de hoy (automática).',
                     isSmallScreen: isSmallScreen,
+                    showCheckIcon: true, // Mostrar el ícono verde
                   ),
                   _buildReadOnlyTextField(
                     label: 'Hora',
                     initialValue: _horaActual,
                     description: 'Hora actual (automática).',
                     isSmallScreen: isSmallScreen,
+                    showCheckIcon: true, // Mostrar el ícono verde
                   ),
-                  _buildTextField(
-                    controller: _placasController,
-                    label: 'Placas de la Unidad',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Ingrese las placas de la unidad';
-                      } else if (!RegExp(r'^[a-zA-Z0-9]+$').hasMatch(value)) {
-                        return 'Las placas solo deben contener letras y números';
-                      } else if (value.length > 10) {
-                        return 'Las placas no pueden tener más de 10 caracteres';
-                      }
-                      return null;
-                    },
-                    onChanged: _validatePlacas,
-                    isValid: _isPlacasValid,
-                    focusNode: _placasFocusNode,
-                    description: 'Ingrese las placas de la unidad que realizó la carga.',
+                  // Reemplazar el campo de placas con el nuevo método
+                  _buildPlacasField(
                     isSmallScreen: isSmallScreen,
                   ),
                   _buildResponsiveCameraButton(
@@ -599,23 +676,14 @@ class _ReportePageState extends State<ReportePage> {
                     description: 'Ingrese el número del odómetro del vehículo.',
                     isSmallScreen: isSmallScreen,
                   ),
+                  // Campo de solo lectura para el último odómetro
                   _buildTextField(
                     controller: _odometroUltimoController,
                     label: 'Odómetro Última Carga',
                     keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Ingrese el número del odómetro de la última carga';
-                      } else if (!RegExp(r'^\d+$').hasMatch(value)) {
-                        return 'El odómetro debe ser un número entero';
-                      }
-                      return null;
-                    },
-                    onChanged: _validateOdometroUltimo,
-                    isValid: _isOdometroUltimoValid,
-                    focusNode: _odometroUltimoFocusNode,
-                    description: 'Ingrese el número del odómetro de la última carga.',
+                    description: 'Último odómetro registrado para la placa seleccionada.',
                     isSmallScreen: isSmallScreen,
+                    enabled: false, // Deshabilitar la edición manual
                   ),
                   _buildResponsiveCameraButton(
                     'Tomar Foto del Odómetro',
@@ -685,20 +753,21 @@ class _ReportePageState extends State<ReportePage> {
             ),
           ),
         ),
-      ),
+      )
     );
-  }
+    }
 
   Widget _buildTextField({
-    TextEditingController? controller,
-    String? label,
-    TextInputType? keyboardType,
-    String? Function(String?)? validator,
+    required TextEditingController controller,
+    required String label,
+    required TextInputType keyboardType,
     String? description,
     Function(String)? onChanged,
+    String? Function(String?)? validator,
     bool isValid = false,
     FocusNode? focusNode,
     required bool isSmallScreen,
+    bool enabled = true,
   }) {
     return Padding(
       padding: EdgeInsets.only(bottom: isSmallScreen ? 12.0 : 16.0),
@@ -708,6 +777,7 @@ class _ReportePageState extends State<ReportePage> {
           TextFormField(
             controller: controller,
             focusNode: focusNode,
+            enabled: enabled,
             decoration: InputDecoration(
               labelText: label,
               border: OutlineInputBorder(),
@@ -715,8 +785,7 @@ class _ReportePageState extends State<ReportePage> {
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (isValid)
-                    Icon(Icons.check_circle, color: Colors.green),
+                  if (isValid) Icon(Icons.check_circle, color: Colors.green),
                   IconButton(
                     icon: Icon(Icons.help_outline, color: Colors.grey),
                     onPressed: () => _mostrarDescripcion(description ?? 'No hay descripción disponible.'),
@@ -728,8 +797,87 @@ class _ReportePageState extends State<ReportePage> {
               ),
             ),
             keyboardType: keyboardType,
-            validator: validator,
             onChanged: onChanged,
+            validator: validator,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlacasField({
+    required bool isSmallScreen,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: isSmallScreen ? 12.0 : 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InputDecorator(
+            decoration: InputDecoration(
+              labelText: 'Placas de la Unidad',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_isPlacasValid) Icon(Icons.check_circle, color: Colors.green), // Ícono verde
+                  IconButton(
+                    icon: Icon(Icons.help_outline, color: Colors.grey),
+                    onPressed: () => _mostrarDescripcion('Seleccione o ingrese las placas de la unidad. Si no encuentras tu placa anotala.'),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(),
+                    iconSize: isSmallScreen ? 20 : 24,
+                  ),
+                ],
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _placasController.text.isNotEmpty && _placasPredefinidas.contains(_placasController.text)
+                          ? _placasController.text
+                          : null,
+                      onChanged: (String? newValue) {
+                        _onPlacasChanged(newValue ?? ''); // Actualizar placas y odómetro
+                        _placasController.text = newValue ?? ''; // Actualizar el controlador
+                      },
+                      items: _placasPredefinidas.map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      hint: Text('Seleccione una placa'),
+                      isExpanded: true,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: TextFormField(
+                    controller: _placasController,
+                    decoration: InputDecoration(
+                      hintText: 'Si no encuentra su placa, ingrese aquí',
+                      border: InputBorder.none,
+                    ),
+                    onChanged: _onPlacasChanged, // Actualizar placas y odómetro
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Ingrese las placas de la unidad';
+                      } else if (!RegExp(r'^[a-zA-Z0-9]+$').hasMatch(value)) {
+                        return 'Las placas solo deben contener letras y números';
+                      } else if (value.length > 7) { // Máximo 7 caracteres
+                        return 'Las placas no pueden tener más de 7 caracteres';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -741,6 +889,7 @@ class _ReportePageState extends State<ReportePage> {
     String? initialValue,
     String? description,
     required bool isSmallScreen,
+    bool showCheckIcon = false, // Parámetro opcional para mostrar el ícono verde
   }) {
     return Padding(
       padding: EdgeInsets.only(bottom: isSmallScreen ? 12.0 : 16.0),
@@ -749,16 +898,22 @@ class _ReportePageState extends State<ReportePage> {
           labelText: label,
           border: OutlineInputBorder(),
           contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-          suffixIcon: IconButton(
-            icon: Icon(Icons.help_outline, color: Colors.grey),
-            onPressed: () => _mostrarDescripcion(description ?? 'No hay descripción disponible.'),
-            padding: EdgeInsets.zero,
-            constraints: BoxConstraints(),
-            iconSize: isSmallScreen ? 20 : 24,
+          suffixIcon: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (showCheckIcon) Icon(Icons.check_circle, color: Colors.green), // Ícono verde
+              IconButton(
+                icon: Icon(Icons.help_outline, color: Colors.grey),
+                onPressed: () => _mostrarDescripcion(description ?? 'No hay descripción disponible.'),
+                padding: EdgeInsets.zero,
+                constraints: BoxConstraints(),
+                iconSize: isSmallScreen ? 20 : 24,
+              ),
+            ],
           ),
         ),
         initialValue: initialValue,
-        enabled: false,
+        enabled: false, // Campo de solo lectura
       ),
     );
   }
@@ -778,12 +933,18 @@ class _ReportePageState extends State<ReportePage> {
               labelText: label,
               border: OutlineInputBorder(),
               contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              suffixIcon: IconButton(
-                icon: Icon(Icons.help_outline, color: Colors.grey),
-                onPressed: () => _mostrarDescripcion(description ?? 'No hay descripción disponible.'),
-                padding: EdgeInsets.zero,
-                constraints: BoxConstraints(),
-                iconSize: isSmallScreen ? 20 : 24,
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_isOperadorValid) Icon(Icons.check_circle, color: Colors.green),
+                  IconButton(
+                    icon: Icon(Icons.help_outline, color: Colors.grey),
+                    onPressed: () => _mostrarDescripcion(description ?? 'No hay descripción disponible.'),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(),
+                    iconSize: isSmallScreen ? 20 : 24,
+                  ),
+                ],
               ),
             ),
             child: DropdownButtonHideUnderline(
@@ -809,59 +970,57 @@ class _ReportePageState extends State<ReportePage> {
     );
   }
 
-Widget _buildDropdownGasolinera({
-  String? label,
-  String? description,
-  required bool isSmallScreen,
-}) {
-  return Padding(
-    padding: EdgeInsets.only(bottom: isSmallScreen ? 12.0 : 16.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InputDecorator(
-          decoration: InputDecoration(
-            labelText: label,
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            suffixIcon: IconButton(
-              icon: Icon(Icons.help_outline, color: Colors.grey),
-              onPressed: () => _mostrarDescripcion(description ?? 'No hay descripción disponible.'),
-              padding: EdgeInsets.zero,
-              constraints: BoxConstraints(),
-              iconSize: isSmallScreen ? 20 : 24,
+  Widget _buildDropdownGasolinera({
+    String? label,
+    String? description,
+    required bool isSmallScreen,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: isSmallScreen ? 12.0 : 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InputDecorator(
+            decoration: InputDecoration(
+              labelText: label,
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_isGasolineraValid) Icon(Icons.check_circle, color: Colors.green),
+                  IconButton(
+                    icon: Icon(Icons.help_outline, color: Colors.grey),
+                    onPressed: () => _mostrarDescripcion(description ?? 'No hay descripción disponible.'),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(),
+                    iconSize: isSmallScreen ? 20 : 24,
+                  ),
+                ],
+              ),
             ),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _gasolineraController.text.isNotEmpty ? _gasolineraController.text : null,
-              onChanged: (String? newValue) {
-                if (newValue == 'GASOLINERA LOS TOROS') { // Solo permitir seleccionar "GASOLINERA LOS TOROS"
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _gasolineraController.text.isNotEmpty ? _gasolineraController.text : null,
+                onChanged: (String? newValue) {
                   setState(() {
                     _gasolineraController.text = newValue!;
                     _validateGasolinera(newValue);
                   });
-                }
-              },
-              items: _gasolineras.map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(
-                    value,
-                    style: TextStyle(
-                      color: value == 'GASOLINERA LOS TOROS' ? Colors.black : Colors.grey, // Cambiar color de texto
-                    ),
-                  ),
-                  enabled: value == 'GASOLINERA LOS TOROS', // Habilitar solo "GASOLINERA LOS TOROS"
-                );
-              }).toList(),
+                },
+                items: _gasolineras.map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
   Widget _buildDropdownTipoGasolina({
     String? label,
@@ -878,12 +1037,18 @@ Widget _buildDropdownGasolinera({
               labelText: label,
               border: OutlineInputBorder(),
               contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              suffixIcon: IconButton(
-                icon: Icon(Icons.help_outline, color: Colors.grey),
-                onPressed: () => _mostrarDescripcion(description ?? 'No hay descripción disponible.'),
-                padding: EdgeInsets.zero,
-                constraints: BoxConstraints(),
-                iconSize: isSmallScreen ? 20 : 24,
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_isTipoGasolinaValid) Icon(Icons.check_circle, color: Colors.green),
+                  IconButton(
+                    icon: Icon(Icons.help_outline, color: Colors.grey),
+                    onPressed: () => _mostrarDescripcion(description ?? 'No hay descripción disponible.'),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(),
+                    iconSize: isSmallScreen ? 20 : 24,
+                  ),
+                ],
               ),
             ),
             child: DropdownButtonHideUnderline(
@@ -892,6 +1057,7 @@ Widget _buildDropdownGasolinera({
                 onChanged: (String? newValue) {
                   setState(() {
                     _tipoGasolina = newValue;
+                    _validateTipoGasolina(newValue);
                   });
                 },
                 items: <String>['Magna', 'Premium', 'Diésel']
@@ -1010,79 +1176,128 @@ Widget _buildDropdownGasolinera({
     );
   }
 
-  Future<void> _enviarFormulario() async {
-    if (_formKey.currentState!.validate()) {
-      if (_fotoPlacasUrl == null || _fotoUnidadUrl == null || _fotoTicketUrl == null || _fotoOdometroUrl == null) {
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Text('Error'),
-              content: Text('Por favor, suba todas las imágenes requeridas.'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
-        );
-        return;
+  Future<int?> _obtenerUltimoOdometro(String placa) async {
+    final airtableApiToken = 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
+    final airtableBaseId = 'appk2qomcs0VaYbCD';
+    final airtableTableName = 'Gasolina';
+    final url = 'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $airtableApiToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final records = data['records'];
+
+        // Filtrar los registros por la placa seleccionada
+        final registrosPlaca = records.where((record) =>
+            record['fields']['Placas'] == placa).toList();
+
+        if (registrosPlaca.isNotEmpty) {
+          // Convertir las fechas a DateTime antes de ordenar
+          registrosPlaca.sort((a, b) {
+            DateTime fechaA = DateTime.parse(a['fields']['Fecha']);
+            DateTime fechaB = DateTime.parse(b['fields']['Fecha']);
+            return fechaB.compareTo(fechaA); // Ordenar de más reciente a más antiguo
+          });
+
+          // Obtener el último odómetro registrado
+          final ultimoOdometro = registrosPlaca.first['fields']['Odometro'];
+          return ultimoOdometro;
+        }
+      } else {
+        throw Exception('Error al obtener datos de Airtable: ${response.statusCode}');
       }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+
+    return null; // Si no se encuentra ningún registro
+  }
+
+  Future<void> _enviarFormulario() async {
+    if (_formKey.currentState!.validate() &&
+        _isOperadorValid &&
+        _isGasolineraValid &&
+        _isTipoGasolinaValid &&
+        _isImporteValid &&
+        _isLitrosValid &&
+        _isOdometroValid &&
+        _fotoPlacasUrl != null &&
+        _fotoUnidadUrl != null &&
+        _fotoTicketUrl != null &&
+        _fotoOdometroUrl != null) {
 
       // Mostrar el diálogo de carga
       showLoadingDialog(context);
 
-      final airtableApiToken = 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
-      final airtableBaseId = 'appk2qomcs0VaYbCD';
-      final airtableTableName = 'Gasolina';
-      final url = 'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
-
-      var body = {
-        'fields': {
-          'Nombre Operador': _operadorSeleccionado, // Usar _operadorSeleccionado
-          'Nombre Gasolinera': _gasolineraController.text,
-          'Fecha': _fechaHoy,
-          'Hora': _horaActual,
-          'Placas': _placasController.text,
-          'Importe': double.parse(_importeController.text),
-          'Litros': double.parse(_litrosController.text),
-          'Odometro': int.parse(_odometroController.text),
-          'Odometro Ultimo': int.parse(_odometroUltimoController.text),
-          'Gasolina': _tipoGasolina,
-          'Foto Placas': _fotoPlacasUrl != null ? [{ 'url': _fotoPlacasUrl }] : null,
-          'Foto Unidad': _fotoUnidadUrl != null ? [{ 'url': _fotoUnidadUrl }] : null,
-          'Foto Ticket': _fotoTicketUrl != null ? [{ 'url': _fotoTicketUrl }] : null,
-          'Foto Odometro': _fotoOdometroUrl != null ? [{ 'url': _fotoOdometroUrl }] : null,
-        }
-      };
-
       try {
-        var response = await http.post(
+        final airtableApiToken = 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
+        final airtableBaseId = 'appk2qomcs0VaYbCD';
+        final airtableTableName = 'Gasolina';
+        final url = 'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
+
+        final response = await http.post(
           Uri.parse(url),
           headers: {
             'Authorization': 'Bearer $airtableApiToken',
             'Content-Type': 'application/json',
           },
-          body: json.encode(body),
+          body: jsonEncode({
+            "fields": {
+              "Nombre Operador": _operadorSeleccionado,
+              "Nombre Gasolinera": _gasolineraController.text,
+              "Gasolina": _tipoGasolina,
+              "Fecha": _fechaHoy,
+              "Hora": _horaActual,
+              "Placas": _placasController.text,
+              "Importe": double.parse(_importeController.text),
+              "Litros": double.parse(_litrosController.text),
+              "Odometro": int.parse(_odometroController.text),
+              "Foto Placas": [
+                {
+                  "url": _fotoPlacasUrl,
+                }
+              ],
+              "Foto Unidad": [
+                {
+                  "url": _fotoUnidadUrl,
+                }
+              ],
+              "Foto Ticket": [
+                {
+                  "url": _fotoTicketUrl,
+                }
+              ],
+              "Foto Odometro": [
+                {
+                  "url": _fotoOdometroUrl,
+                }
+              ],
+            },
+          }),
         );
 
-        Navigator.of(context).pop(); // Cerrar el diálogo de carga
+        // Cerrar el diálogo de carga
+        Navigator.of(context).pop();
 
         if (response.statusCode == 200) {
+          // Mostrar ventana emergente de éxito
           showDialog(
             context: context,
             builder: (context) {
               return AlertDialog(
                 title: Text('Éxito'),
-                content: Text('El reporte se ha enviado correctamente.'),
+                content: Text('La información se ha subido correctamente.'),
                 actions: [
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(); // Cerrar el diálogo
                     },
                     child: Text('OK'),
                   ),
@@ -1091,67 +1306,71 @@ Widget _buildDropdownGasolinera({
             },
           );
 
-        setState(() {
-        _operadorSeleccionado = null; // Limpiar el valor seleccionado
-        _gasolineraController.clear();
-        _importeController.clear();
-        _litrosController.clear();
-        _placasController.clear();
-        _odometroController.clear();
-        _odometroUltimoController.clear();
-        _fotoPlacasUrl = null;
-        _fotoUnidadUrl = null;
-        _fotoTicketUrl = null;
-        _fotoOdometroUrl = null;
-        _isOperadorValid = false;
-        _isGasolineraValid = false;
-        _isImporteValid = false;
-        _isLitrosValid = false;
-        _isPlacasValid = false;
-        _isOdometroValid = false;
-        _isOdometroUltimoValid = false;
-        _precioPorLitro = '';
-        _tipoGasolina = null;
-      });
+          // Cerrar el teclado si está abierto
+          FocusScope.of(context).unfocus();
+
+          // Limpiar el formulario después de enviar, excepto los campos por defecto
+          _formKey.currentState!.reset(); // Limpiar todos los campos
+          setState(() {
+            // Restablecer los campos que no son por defecto
+            _operadorSeleccionado = null;
+            _gasolineraController.text = 'GASOLINERA LOS TOROS'; // Valor por defecto
+            _tipoGasolina = null;
+            _placasController.clear();
+            _importeController.clear();
+            _litrosController.clear();
+            _odometroController.clear();
+            _fotoPlacasUrl = null;
+            _fotoUnidadUrl = null;
+            _fotoTicketUrl = null;
+            _fotoOdometroUrl = null;
+            _precioPorLitro = '';
+          });
         } else {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: Text('Error'),
-                content: Text('Hubo un error al enviar el reporte. Por favor, inténtelo de nuevo.'),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('OK'),
-                  ),
-                ],
-              );
-            },
+          // Error al enviar los datos
+          print('Error al enviar el reporte. Código de estado: ${response.statusCode}');
+          print('Respuesta del servidor: ${response.body}'); // Imprime la respuesta del servidor
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al enviar el reporte: ${response.statusCode}'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } catch (e) {
-        Navigator.of(context).pop(); // Cerrar el diálogo
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Text('Error'),
-              content: Text('Hubo un error de conexión. Por favor, inténtelo de nuevo.'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
+        // Cerrar el diálogo de carga
+        Navigator.of(context).pop();
+
+        // Error de conexión
+        print('Error de conexión: $e'); // Imprime el error en la consola
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error de conexión: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
+    } else {
+      // Mostrar un mensaje de error si no todos los campos están llenos
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text('Por favor, complete todos los campos correctamente.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 

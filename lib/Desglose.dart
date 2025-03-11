@@ -87,7 +87,6 @@ Widget build(BuildContext context) {
                     ],
                   ),
                 ),
-                // Tabla con datos - Con Scrollbar horizontal explícito
                 Expanded(
                   child: Scrollbar(
                     controller: _scrollController,
@@ -97,119 +96,122 @@ Widget build(BuildContext context) {
                     child: SingleChildScrollView(
                       controller: _scrollController,
                       scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        sortColumnIndex: _sortColumnIndex,
-                        sortAscending: _sortAscending,
-                        columnSpacing: 20,
-                        headingRowHeight: 50,
-                        dataRowMinHeight: 60,
-                        dataRowMaxHeight: 80,
-                        border: TableBorder(
-                          horizontalInside: BorderSide(color: Colors.grey[300]!),
-                          verticalInside: BorderSide(color: Colors.grey[300]!),
-                          bottom: BorderSide(color: Colors.grey[300]!),
-                          top: BorderSide(color: Colors.grey[300]!),
-                          left: BorderSide(color: Colors.grey[300]!),
-                          right: BorderSide(color: Colors.grey[300]!),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical, // Scroll vertical
+                        child: DataTable(
+                          sortColumnIndex: _sortColumnIndex,
+                          sortAscending: _sortAscending,
+                          columnSpacing: 20,
+                          headingRowHeight: 50,
+                          dataRowMinHeight: 60,
+                          dataRowMaxHeight: 80,
+                          border: TableBorder(
+                            horizontalInside: BorderSide(color: Colors.grey[300]!),
+                            verticalInside: BorderSide(color: Colors.grey[300]!),
+                            bottom: BorderSide(color: Colors.grey[300]!),
+                            top: BorderSide(color: Colors.grey[300]!),
+                            left: BorderSide(color: Colors.grey[300]!),
+                            right: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          columns: [
+                            DataColumn(
+                              label: Expanded(child: Text('Operador', textAlign: TextAlign.center)),
+                              onSort: (columnIndex, ascending) {
+                                _sort<String>((registro) => registro['Nombre Operador'] ?? '', columnIndex, ascending);
+                              },
+                            ),
+                            DataColumn(
+                              label: Expanded(child: Text('Gasolinera', textAlign: TextAlign.center)),
+                              onSort: (columnIndex, ascending) {
+                                _sort<String>((registro) => registro['Nombre Gasolinera'] ?? '', columnIndex, ascending);
+                              },
+                            ),
+                            DataColumn(
+                              label: Expanded(child: Text('Fecha', textAlign: TextAlign.center)),
+                              onSort: (columnIndex, ascending) {
+                                _sort<String>((registro) => registro['Fecha'] ?? '', columnIndex, ascending);
+                              },
+                            ),
+                            DataColumn(
+                              label: Expanded(child: Text('Hora', textAlign: TextAlign.center)),
+                              onSort: (columnIndex, ascending) {
+                                _sort<String>((registro) => registro['Hora'] ?? '', columnIndex, ascending);
+                              },
+                            ),
+                            DataColumn(
+                              label: Expanded(child: Text('Placas', textAlign: TextAlign.center)),
+                              onSort: (columnIndex, ascending) {
+                                _sort<String>((registro) => registro['Placas'] ?? '', columnIndex, ascending);
+                              },
+                            ),
+                            DataColumn(
+                              label: Expanded(child: Text('Importe', textAlign: TextAlign.center)),
+                              onSort: (columnIndex, ascending) {
+                                _sort<num>((registro) => registro['Importe'] ?? 0, columnIndex, ascending);
+                              },
+                            ),
+                            DataColumn(
+                              label: Expanded(child: Text('Litros', textAlign: TextAlign.center)),
+                              onSort: (columnIndex, ascending) {
+                                _sort<num>((registro) => registro['Litros'] ?? 0, columnIndex, ascending);
+                              },
+                            ),
+                            DataColumn(
+                              label: Expanded(child: Text('Descargar', textAlign: TextAlign.center)),
+                            ),
+                          ],
+                          rows: _registros.map((registro) {
+                            return DataRow(cells: [
+                              DataCell(
+                                Container(
+                                  constraints: BoxConstraints(maxWidth: 150),
+                                  child: Text(
+                                    registro['Nombre Operador'] ?? '',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                              DataCell(
+                                Container(
+                                  constraints: BoxConstraints(maxWidth: 150),
+                                  child: Text(
+                                    registro['Nombre Gasolinera'] ?? '',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                              DataCell(Text(registro['Fecha'] ?? '')),
+                              DataCell(Text(registro['Hora'] ?? '')),
+                              DataCell(Text(registro['Placas'] ?? '')),
+                              DataCell(
+                                Text(
+                                  registro['Importe'] != null
+                                      ? '\$${registro['Importe'].toStringAsFixed(2)}'
+                                      : '',
+                                  textAlign: TextAlign.right,
+                                ),
+                              ),
+                              DataCell(
+                                Text(
+                                  registro['Litros'] != null
+                                      ? '${registro['Litros'].toStringAsFixed(2)} L'
+                                      : '',
+                                  textAlign: TextAlign.right,
+                                ),
+                              ),
+                              DataCell(
+                                ElevatedButton(
+                                  onPressed: () => _generateAndDownloadPdf(registro),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFFC0261F),
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: Text('PDF'),
+                                ),
+                              ),
+                            ]);
+                          }).toList(),
                         ),
-                        columns: [
-                          DataColumn(
-                            label: Expanded(child: Text('Operador', textAlign: TextAlign.center)),
-                            onSort: (columnIndex, ascending) {
-                              _sort<String>((registro) => registro['Nombre Operador'] ?? '', columnIndex, ascending);
-                            },
-                          ),
-                          DataColumn(
-                            label: Expanded(child: Text('Gasolinera', textAlign: TextAlign.center)),
-                            onSort: (columnIndex, ascending) {
-                              _sort<String>((registro) => registro['Nombre Gasolinera'] ?? '', columnIndex, ascending);
-                            },
-                          ),
-                          DataColumn(
-                            label: Expanded(child: Text('Fecha', textAlign: TextAlign.center)),
-                            onSort: (columnIndex, ascending) {
-                              _sort<String>((registro) => registro['Fecha'] ?? '', columnIndex, ascending);
-                            },
-                          ),
-                          DataColumn(
-                            label: Expanded(child: Text('Hora', textAlign: TextAlign.center)),
-                            onSort: (columnIndex, ascending) {
-                              _sort<String>((registro) => registro['Hora'] ?? '', columnIndex, ascending);
-                            },
-                          ),
-                          DataColumn(
-                            label: Expanded(child: Text('Placas', textAlign: TextAlign.center)),
-                            onSort: (columnIndex, ascending) {
-                              _sort<String>((registro) => registro['Placas'] ?? '', columnIndex, ascending);
-                            },
-                          ),
-                          DataColumn(
-                            label: Expanded(child: Text('Importe', textAlign: TextAlign.center)),
-                            onSort: (columnIndex, ascending) {
-                              _sort<num>((registro) => registro['Importe'] ?? 0, columnIndex, ascending);
-                            },
-                          ),
-                          DataColumn(
-                            label: Expanded(child: Text('Litros', textAlign: TextAlign.center)),
-                            onSort: (columnIndex, ascending) {
-                              _sort<num>((registro) => registro['Litros'] ?? 0, columnIndex, ascending);
-                            },
-                          ),
-                          DataColumn(
-                            label: Expanded(child: Text('Descargar', textAlign: TextAlign.center)),
-                          ),
-                        ],
-                        rows: _registros.map((registro) {
-                          return DataRow(cells: [
-                            DataCell(
-                              Container(
-                                constraints: BoxConstraints(maxWidth: 150),
-                                child: Text(
-                                  registro['Nombre Operador'] ?? '',
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ),
-                            DataCell(
-                              Container(
-                                constraints: BoxConstraints(maxWidth: 150),
-                                child: Text(
-                                  registro['Nombre Gasolinera'] ?? '',
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ),
-                            DataCell(Text(registro['Fecha'] ?? '')),
-                            DataCell(Text(registro['Hora'] ?? '')),
-                            DataCell(Text(registro['Placas'] ?? '')),
-                            DataCell(
-                              Text(
-                                registro['Importe'] != null
-                                    ? '\$${registro['Importe'].toStringAsFixed(2)}'
-                                    : '',
-                                textAlign: TextAlign.right,
-                              ),
-                            ),
-                            DataCell(
-                              Text(
-                                registro['Litros'] != null
-                                    ? '${registro['Litros'].toStringAsFixed(2)} L'
-                                    : '',
-                                textAlign: TextAlign.right,
-                              ),
-                            ),
-                            DataCell(
-                              ElevatedButton(
-                                onPressed: () => _generateAndDownloadPdf(registro),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFFC0261F),
-                                  foregroundColor: Colors.white,
-                                ),
-                                child: Text('PDF'),
-                              ),
-                            ),
-                          ]);
-                        }).toList(),
                       ),
                     ),
                   ),
