@@ -19,6 +19,7 @@ class _ReportePageState extends State<ReportePage> {
   final TextEditingController _placasController = TextEditingController();
   final TextEditingController _odometroController = TextEditingController();
   final TextEditingController _odometroUltimoController = TextEditingController();
+  final TextEditingController _folioTicketController = TextEditingController();
 
   // FocusNodes para cada campo de texto
   final FocusNode _operadorFocusNode = FocusNode();
@@ -28,6 +29,7 @@ class _ReportePageState extends State<ReportePage> {
   final FocusNode _placasFocusNode = FocusNode();
   final FocusNode _odometroFocusNode = FocusNode();
   final FocusNode _odometroUltimoFocusNode = FocusNode();
+  final FocusNode _folioTicketFocusNode = FocusNode();
 
   String _fechaHoy = DateFormat('dd/MM/yyyy').format(DateTime.now());
   String _horaActual = DateFormat('HH:mm').format(DateTime.now());
@@ -36,6 +38,7 @@ class _ReportePageState extends State<ReportePage> {
   String? _fotoUnidadUrl;
   String? _fotoTicketUrl;
   String? _fotoOdometroUrl;
+  String _diferenciaKilometros = '';
 
   // Estados de validación existentes
   bool _isImporteValid = false;
@@ -46,6 +49,8 @@ class _ReportePageState extends State<ReportePage> {
   bool _isGasolineraValid = false;
   bool _isTipoGasolinaValid = false;
   bool _isPlacasValid = false; // Estado de validación para el campo de placas
+  // Agrega este estado de validación
+  bool _isFolioTicketValid = false;
 
   // Precio por litro calculado
   String _precioPorLitro = '';
@@ -136,7 +141,7 @@ class _ReportePageState extends State<ReportePage> {
     'Vicente Herrera Gonzalez',
     'Zeferino de la Luna Perez',
   ];
-
+  
   final List<String> _placasPredefinidas = [
     'GZ6352B',
     'GY1105D',
@@ -271,18 +276,12 @@ class _ReportePageState extends State<ReportePage> {
     _actualizarOdometroUltimo(value); // Actualizar el odómetro último
   }
 
-  void _validateImporte(String value) {
+  void _validateFolioTicket(String value) {
     setState(() {
-      _isImporteValid = value.isNotEmpty && RegExp(r'^\d+(\.\d{1,2})?$').hasMatch(value);
+      _isFolioTicketValid = value.isNotEmpty;
     });
   }
 
-  void _validateLitros(String value) {
-    setState(() {
-      _isLitrosValid = value.isNotEmpty && RegExp(r'^\d+(\.\d{1,2})?$').hasMatch(value);
-    });
-  }
-  
   void _validatePlacas(String value) {
     bool isValid = value.isNotEmpty && RegExp(r'^[a-zA-Z0-9]+$').hasMatch(value) && value.length <= 7;
     if (_isPlacasValid != isValid) {
@@ -293,9 +292,29 @@ class _ReportePageState extends State<ReportePage> {
   }
 
   void _validateOdometro(String value) {
+    bool isOdometroValid = false;
+    
+    if (value.isNotEmpty && RegExp(r'^\d+$').hasMatch(value) && value.length <= 10) {
+      if (_odometroUltimoController.text.isEmpty || _odometroUltimoController.text == 'No hay odómetro registrado') {
+        // Si no hay odómetro registrado, consideramos válido si hay un valor numérico
+        isOdometroValid = true;
+      } else {
+        try {
+          int odometroActual = int.parse(value);
+          int odometroUltimo = int.parse(_odometroUltimoController.text);
+          isOdometroValid = odometroActual > odometroUltimo;
+        } catch (e) {
+          isOdometroValid = false;
+        }
+      }
+    }
+
     setState(() {
-      _isOdometroValid = value.isNotEmpty && RegExp(r'^\d+$').hasMatch(value) && value.length <= 10;
+      // Solo actualizamos el estado de validación del odómetro
+      _isOdometroValid = isOdometroValid;
     });
+
+    _calcularDiferenciaKilometros(); // Calcular la diferencia de kilómetros
   }
 
   void _validateOperador(String? value) {
@@ -515,6 +534,56 @@ class _ReportePageState extends State<ReportePage> {
     );
   }
 
+  void _calcularDiferenciaKilometros() {
+    if (_odometroController.text.isNotEmpty) {
+      if (_odometroUltimoController.text.isEmpty || _odometroUltimoController.text == 'No hay odómetro registrado') {
+        setState(() {
+          _diferenciaKilometros = '0 km'; // Si no hay odómetro registrado, la diferencia es 0
+          _isOdometroValid = true; // Marcar como válido para mostrar el check verde
+        });
+      } else {
+        int odometroActual = int.parse(_odometroController.text);
+        int odometroUltimo = int.parse(_odometroUltimoController.text);
+
+        if (odometroActual > odometroUltimo) {
+          int diferencia = odometroActual - odometroUltimo;
+          setState(() {
+            _diferenciaKilometros = '$diferencia km';
+            _isOdometroValid = true; // Marcar como válido para mostrar el check verde
+          });
+        } else {
+          setState(() {
+            _diferenciaKilometros = 'El odómetro actual debe ser mayor al último registrado';
+            _isOdometroValid = false; // No mostrar el check verde
+          });
+        }
+      }
+    } else {
+      setState(() {
+        _diferenciaKilometros = '';
+        _isOdometroValid = false; // No mostrar el check verde
+      });
+    }
+  }
+
+  void _validateImporte(String value) {
+    setState(() {
+      _isImporteValid = value.isNotEmpty && RegExp(r'^\d+(\.\d{1,2})?$').hasMatch(value);
+      if (_isImporteValid && _isLitrosValid) {
+        _calcularPrecioPorLitro();
+      }
+    });
+  }
+
+  void _validateLitros(String value) {
+    setState(() {
+      _isLitrosValid = value.isNotEmpty && RegExp(r'^\d+(\.\d{1,2})?$').hasMatch(value);
+      if (_isImporteValid && _isLitrosValid) {
+        _calcularPrecioPorLitro();
+      }
+    });
+  }
+
   void _calcularPrecioPorLitro() {
     if (_importeController.text.isNotEmpty && _litrosController.text.isNotEmpty) {
       double importe = double.parse(_importeController.text);
@@ -522,6 +591,14 @@ class _ReportePageState extends State<ReportePage> {
       double precioPorLitro = importe / litros;
       setState(() {
         _precioPorLitro = precioPorLitro.toStringAsFixed(2);
+        // Validar si el precio por litro es mayor a $20
+        if (precioPorLitro > 20) {
+          _isImporteValid = true;
+          _isLitrosValid = true;
+        } else {
+          _isImporteValid = false;
+          _isLitrosValid = false;
+        }
       });
     } else {
       setState(() {
@@ -529,7 +606,7 @@ class _ReportePageState extends State<ReportePage> {
       });
     }
   }
-    
+  
   @override
   Widget build(BuildContext context) {
     // Obtenemos el tamaño de la pantalla para adaptaciones
@@ -658,24 +735,24 @@ class _ReportePageState extends State<ReportePage> {
                     description: 'Seleccione el tipo de gasolina cargada.',
                     isSmallScreen: isSmallScreen,
                   ),
-                  _buildTextField(
-                    controller: _odometroController,
-                    label: 'Odómetro',
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Ingrese el número del odómetro';
-                      } else if (!RegExp(r'^\d+$').hasMatch(value)) {
-                        return 'El odómetro debe ser un número entero';
-                      }
-                      return null;
-                    },
-                    onChanged: _validateOdometro,
-                    isValid: _isOdometroValid,
-                    focusNode: _odometroFocusNode,
-                    description: 'Ingrese el número del odómetro del vehículo.',
-                    isSmallScreen: isSmallScreen,
-                  ),
+                _buildTextField(
+                  controller: _odometroController,
+                  label: 'Odómetro',
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Ingrese el número del odómetro';
+                    } else if (!RegExp(r'^\d+$').hasMatch(value)) {
+                      return 'El odómetro debe ser un número entero';
+                    }
+                    return null;
+                  },
+                  onChanged: _validateOdometro,
+                  isValid: _isOdometroValid,
+                  focusNode: _odometroFocusNode,
+                  description: 'Ingrese el número del odómetro del vehículo.',
+                  isSmallScreen: isSmallScreen,
+                ),
                   // Campo de solo lectura para el último odómetro
                   _buildTextField(
                     controller: _odometroUltimoController,
@@ -685,6 +762,18 @@ class _ReportePageState extends State<ReportePage> {
                     isSmallScreen: isSmallScreen,
                     enabled: false, // Deshabilitar la edición manual
                   ),
+                  if (_diferenciaKilometros.isNotEmpty)
+                    Padding(
+                      padding: EdgeInsets.only(bottom: isSmallScreen ? 12.0 : 16.0),
+                      child: Text(
+                        'Kilómetros recorridos: $_diferenciaKilometros',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: _diferenciaKilometros.contains('debe ser mayor') ? Colors.red : Colors.black,
+                        ),
+                      ),
+                    ),
                   _buildResponsiveCameraButton(
                     'Tomar Foto del Odómetro',
                     'Tome una foto del odómetro del vehículo. (Foto legible)',
@@ -699,6 +788,22 @@ class _ReportePageState extends State<ReportePage> {
                     },
                     isUploaded: _fotoOdometroUrl != null,
                     imageUrl: _fotoOdometroUrl,
+                    isSmallScreen: isSmallScreen,
+                  ),
+                  _buildTextField(
+                    controller: _folioTicketController,
+                    label: 'Folio del Ticket',
+                    keyboardType: TextInputType.text,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Ingrese el folio del ticket';
+                      }
+                      return null;
+                    },
+                    onChanged: _validateFolioTicket,
+                    isValid: _isFolioTicketValid,
+                    focusNode: _folioTicketFocusNode,
+                    description: 'Ingrese el folio del ticket de la compra de combustible.',
                     isSmallScreen: isSmallScreen,
                   ),
                   _buildResponsiveCameraButton(
@@ -757,6 +862,7 @@ class _ReportePageState extends State<ReportePage> {
     );
     }
 
+  // También modifica tu método de _buildTextField para cada campo específico
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -785,7 +891,13 @@ class _ReportePageState extends State<ReportePage> {
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (isValid) Icon(Icons.check_circle, color: Colors.green),
+                  // Solo mostramos el ícono de verificación para el campo específico que corresponde
+                  if (isValid && 
+                      ((label == 'Odómetro' && focusNode == _odometroFocusNode) ||
+                      (label == 'Importe Total (\$)' && focusNode == _importeFocusNode) ||
+                      (label == 'Litros Cargados' && focusNode == _litrosFocusNode) ||
+                      (label == 'Folio del Ticket' && focusNode == _folioTicketFocusNode)))
+                    Icon(Icons.check_circle, color: Colors.green),
                   IconButton(
                     icon: Icon(Icons.help_outline, color: Colors.grey),
                     onPressed: () => _mostrarDescripcion(description ?? 'No hay descripción disponible.'),
@@ -1228,11 +1340,11 @@ class _ReportePageState extends State<ReportePage> {
         _isImporteValid &&
         _isLitrosValid &&
         _isOdometroValid &&
+        _isFolioTicketValid &&
         _fotoPlacasUrl != null &&
         _fotoUnidadUrl != null &&
         _fotoTicketUrl != null &&
         _fotoOdometroUrl != null) {
-
       // Mostrar el diálogo de carga
       showLoadingDialog(context);
 
@@ -1242,6 +1354,7 @@ class _ReportePageState extends State<ReportePage> {
         final airtableTableName = 'Gasolina';
         final url = 'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
 
+        print('Enviando formulario...');
         final response = await http.post(
           Uri.parse(url),
           headers: {
@@ -1258,7 +1371,10 @@ class _ReportePageState extends State<ReportePage> {
               "Placas": _placasController.text,
               "Importe": double.parse(_importeController.text),
               "Litros": double.parse(_litrosController.text),
+              "Precio Litros": double.parse(_precioPorLitro),
               "Odometro": int.parse(_odometroController.text),
+              "Diferencia Kilometros": int.parse(_diferenciaKilometros.replaceAll(' km', '')),
+              "Folio Ticket": _folioTicketController.text,
               "Foto Placas": [
                 {
                   "url": _fotoPlacasUrl,
@@ -1282,6 +1398,7 @@ class _ReportePageState extends State<ReportePage> {
             },
           }),
         );
+        print('Formulario enviado. Respuesta: ${response.statusCode}');
 
         // Cerrar el diálogo de carga
         Navigator.of(context).pop();
@@ -1320,16 +1437,28 @@ class _ReportePageState extends State<ReportePage> {
             _importeController.clear();
             _litrosController.clear();
             _odometroController.clear();
+            _folioTicketController.clear(); // Limpiar el campo del folio del ticket
             _fotoPlacasUrl = null;
             _fotoUnidadUrl = null;
             _fotoTicketUrl = null;
             _fotoOdometroUrl = null;
             _precioPorLitro = '';
+            _diferenciaKilometros = '';
+
+            // Restablecer los estados de validación
+            _isOperadorValid = false;
+            _isGasolineraValid = false;
+            _isTipoGasolinaValid = false;
+            _isImporteValid = false;
+            _isLitrosValid = false;
+            _isOdometroValid = false;
+            _isFolioTicketValid = false;
+            _isPlacasValid = false;
           });
         } else {
           // Error al enviar los datos
           print('Error al enviar el reporte. Código de estado: ${response.statusCode}');
-          print('Respuesta del servidor: ${response.body}'); // Imprime la respuesta del servidor
+          print('Respuesta del servidor: ${response.body}');
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -1343,7 +1472,7 @@ class _ReportePageState extends State<ReportePage> {
         Navigator.of(context).pop();
 
         // Error de conexión
-        print('Error de conexión: $e'); // Imprime el error en la consola
+        print('Error de conexión: $e');
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

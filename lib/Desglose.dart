@@ -98,120 +98,170 @@ Widget build(BuildContext context) {
                       scrollDirection: Axis.horizontal,
                       child: SingleChildScrollView(
                         scrollDirection: Axis.vertical, // Scroll vertical
-                        child: DataTable(
-                          sortColumnIndex: _sortColumnIndex,
-                          sortAscending: _sortAscending,
-                          columnSpacing: 20,
-                          headingRowHeight: 50,
-                          dataRowMinHeight: 60,
-                          dataRowMaxHeight: 80,
-                          border: TableBorder(
-                            horizontalInside: BorderSide(color: Colors.grey[300]!),
-                            verticalInside: BorderSide(color: Colors.grey[300]!),
-                            bottom: BorderSide(color: Colors.grey[300]!),
-                            top: BorderSide(color: Colors.grey[300]!),
-                            left: BorderSide(color: Colors.grey[300]!),
-                            right: BorderSide(color: Colors.grey[300]!),
-                          ),
-                          columns: [
-                            DataColumn(
-                              label: Expanded(child: Text('Operador', textAlign: TextAlign.center)),
-                              onSort: (columnIndex, ascending) {
-                                _sort<String>((registro) => registro['Nombre Operador'] ?? '', columnIndex, ascending);
-                              },
-                            ),
-                            DataColumn(
-                              label: Expanded(child: Text('Gasolinera', textAlign: TextAlign.center)),
-                              onSort: (columnIndex, ascending) {
-                                _sort<String>((registro) => registro['Nombre Gasolinera'] ?? '', columnIndex, ascending);
-                              },
-                            ),
-                            DataColumn(
-                              label: Expanded(child: Text('Fecha', textAlign: TextAlign.center)),
-                              onSort: (columnIndex, ascending) {
-                                _sort<String>((registro) => registro['Fecha'] ?? '', columnIndex, ascending);
-                              },
-                            ),
-                            DataColumn(
-                              label: Expanded(child: Text('Hora', textAlign: TextAlign.center)),
-                              onSort: (columnIndex, ascending) {
-                                _sort<String>((registro) => registro['Hora'] ?? '', columnIndex, ascending);
-                              },
-                            ),
-                            DataColumn(
-                              label: Expanded(child: Text('Placas', textAlign: TextAlign.center)),
-                              onSort: (columnIndex, ascending) {
-                                _sort<String>((registro) => registro['Placas'] ?? '', columnIndex, ascending);
-                              },
-                            ),
-                            DataColumn(
-                              label: Expanded(child: Text('Importe', textAlign: TextAlign.center)),
-                              onSort: (columnIndex, ascending) {
-                                _sort<num>((registro) => registro['Importe'] ?? 0, columnIndex, ascending);
-                              },
-                            ),
-                            DataColumn(
-                              label: Expanded(child: Text('Litros', textAlign: TextAlign.center)),
-                              onSort: (columnIndex, ascending) {
-                                _sort<num>((registro) => registro['Litros'] ?? 0, columnIndex, ascending);
-                              },
-                            ),
-                            DataColumn(
-                              label: Expanded(child: Text('Descargar', textAlign: TextAlign.center)),
-                            ),
-                          ],
-                          rows: _registros.map((registro) {
-                            return DataRow(cells: [
-                              DataCell(
-                                Container(
-                                  constraints: BoxConstraints(maxWidth: 150),
-                                  child: Text(
-                                    registro['Nombre Operador'] ?? '',
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ),
-                              DataCell(
-                                Container(
-                                  constraints: BoxConstraints(maxWidth: 150),
-                                  child: Text(
-                                    registro['Nombre Gasolinera'] ?? '',
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ),
-                              DataCell(Text(registro['Fecha'] ?? '')),
-                              DataCell(Text(registro['Hora'] ?? '')),
-                              DataCell(Text(registro['Placas'] ?? '')),
-                              DataCell(
-                                Text(
-                                  registro['Importe'] != null
-                                      ? '\$${registro['Importe'].toStringAsFixed(2)}'
-                                      : '',
-                                  textAlign: TextAlign.right,
-                                ),
-                              ),
-                              DataCell(
-                                Text(
-                                  registro['Litros'] != null
-                                      ? '${registro['Litros'].toStringAsFixed(2)} L'
-                                      : '',
-                                  textAlign: TextAlign.right,
-                                ),
-                              ),
-                              DataCell(
-                                ElevatedButton(
-                                  onPressed: () => _generateAndDownloadPdf(registro),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(0xFFC0261F),
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  child: Text('PDF'),
-                                ),
-                              ),
-                            ]);
-                          }).toList(),
-                        ),
+                        child:DataTable(
+  sortColumnIndex: _sortColumnIndex,
+  sortAscending: _sortAscending,
+  columnSpacing: 20,
+  headingRowHeight: 50,
+  dataRowMinHeight: 60,
+  dataRowMaxHeight: 80,
+  border: TableBorder(
+    horizontalInside: BorderSide(color: Colors.grey[300]!),
+    verticalInside: BorderSide(color: Colors.grey[300]!),
+    bottom: BorderSide(color: Colors.grey[300]!),
+    top: BorderSide(color: Colors.grey[300]!),
+    left: BorderSide(color: Colors.grey[300]!),
+    right: BorderSide(color: Colors.grey[300]!),
+  ),
+  columns: [
+    DataColumn(
+      label: Expanded(child: Text('Operador', textAlign: TextAlign.center)),
+      onSort: (columnIndex, ascending) {
+        _sort<String>((registro) => registro['Nombre Operador'] ?? '', columnIndex, ascending);
+      },
+    ),
+    DataColumn(
+      label: Expanded(child: Text('Gasolinera', textAlign: TextAlign.center)),
+      onSort: (columnIndex, ascending) {
+        _sort<String>((registro) => registro['Nombre Gasolinera'] ?? '', columnIndex, ascending);
+      },
+    ),
+    DataColumn(
+      label: Expanded(child: Text('Fecha', textAlign: TextAlign.center)),
+      onSort: (columnIndex, ascending) {
+        _sort<String>((registro) => registro['Fecha'] ?? '', columnIndex, ascending);
+      },
+    ),
+    DataColumn(
+      label: Expanded(child: Text('Hora', textAlign: TextAlign.center)),
+      onSort: (columnIndex, ascending) {
+        _sort<String>((registro) => registro['Hora'] ?? '', columnIndex, ascending);
+      },
+    ),
+    DataColumn(
+      label: Expanded(child: Text('Placas', textAlign: TextAlign.center)),
+      onSort: (columnIndex, ascending) {
+        _sort<String>((registro) => registro['Placas'] ?? '', columnIndex, ascending);
+      },
+    ),
+    DataColumn(
+      label: Expanded(child: Text('Importe', textAlign: TextAlign.center)),
+      onSort: (columnIndex, ascending) {
+        _sort<num>((registro) => registro['Importe'] ?? 0, columnIndex, ascending);
+      },
+    ),
+    DataColumn(
+      label: Expanded(child: Text('Litros', textAlign: TextAlign.center)),
+      onSort: (columnIndex, ascending) {
+        _sort<num>((registro) => registro['Litros'] ?? 0, columnIndex, ascending);
+      },
+    ),
+    DataColumn(
+      label: Expanded(child: Text('Precio Litros', textAlign: TextAlign.center)),
+      onSort: (columnIndex, ascending) {
+        _sort<num>((registro) => registro['Precio Litros'] ?? 0, columnIndex, ascending);
+      },
+    ),
+    DataColumn(
+      label: Expanded(child: Text('Odometro', textAlign: TextAlign.center)),
+      onSort: (columnIndex, ascending) {
+        _sort<num>((registro) => registro['Odometro'] ?? 0, columnIndex, ascending);
+      },
+    ),
+    DataColumn(
+      label: Expanded(child: Text('Diferencia Km', textAlign: TextAlign.center)),
+      onSort: (columnIndex, ascending) {
+        _sort<num>((registro) => registro['Diferencia Kilometros'] ?? 0, columnIndex, ascending);
+      },
+    ),
+    DataColumn(
+      label: Expanded(child: Text('Folio Ticket', textAlign: TextAlign.center)),
+      onSort: (columnIndex, ascending) {
+        _sort<String>((registro) => registro['Folio Ticket'] ?? '', columnIndex, ascending);
+      },
+    ),
+    DataColumn(
+      label: Expanded(child: Text('Descargar', textAlign: TextAlign.center)),
+    ),
+  ],
+  rows: _registros.map((registro) {
+    return DataRow(cells: [
+      DataCell(
+        Container(
+          constraints: BoxConstraints(maxWidth: 150),
+          child: Text(
+            registro['Nombre Operador'] ?? '',
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+      DataCell(
+        Container(
+          constraints: BoxConstraints(maxWidth: 150),
+          child: Text(
+            registro['Nombre Gasolinera'] ?? '',
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+      DataCell(Text(registro['Fecha'] ?? '')),
+      DataCell(Text(registro['Hora'] ?? '')),
+      DataCell(Text(registro['Placas'] ?? '')),
+      DataCell(
+        Text(
+          registro['Importe'] != null
+              ? '\$${registro['Importe'].toStringAsFixed(2)}'
+              : '',
+          textAlign: TextAlign.right,
+        ),
+      ),
+      DataCell(
+        Text(
+          registro['Litros'] != null
+              ? '${registro['Litros'].toStringAsFixed(2)} L'
+              : '',
+          textAlign: TextAlign.right,
+        ),
+      ),
+      DataCell(
+        Text(
+          registro['Precio Litros'] != null
+              ? '\$${registro['Precio Litros'].toStringAsFixed(2)}'
+              : '',
+          textAlign: TextAlign.right,
+        ),
+      ),
+      DataCell(
+        Text(
+          registro['Odometro'] != null
+              ? '${registro['Odometro'].toStringAsFixed(0)} km'
+              : '',
+          textAlign: TextAlign.right,
+        ),
+      ),
+      DataCell(
+        Text(
+          registro['Diferencia Kilometros'] != null
+              ? '${registro['Diferencia Kilometros'].toStringAsFixed(0)} km'
+              : '',
+          textAlign: TextAlign.right,
+        ),
+      ),
+      DataCell(Text(registro['Folio Ticket'] ?? '')),
+      DataCell(
+        ElevatedButton(
+          onPressed: () => _generateAndDownloadPdf(registro),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFFC0261F),
+            foregroundColor: Colors.white,
+          ),
+          child: Text('PDF'),
+        ),
+      ),
+    ]);
+  }).toList(),
+), 
+                        
                       ),
                     ),
                   ),
@@ -392,7 +442,7 @@ Widget build(BuildContext context) {
         );
       }
 
-      // Primera página - Información general
+            // Primera página - Información general
       pdf.addPage(
         pw.Page(
           build: (pw.Context context) {
@@ -419,7 +469,10 @@ Widget build(BuildContext context) {
                     ['Placas', registro['Placas'] ?? ''],
                     ['Importe', '\$${registro['Importe']?.toStringAsFixed(2) ?? ''}'],
                     ['Litros', '${registro['Litros']?.toStringAsFixed(2) ?? ''} L'],
-                    ['Odometro', '${registro['Odometro']?.toStringAsFixed(0) ?? ''} '],
+                    ['Precio Litros', '\$${registro['Precio Litros']?.toStringAsFixed(2) ?? ''}'],
+                    ['Odometro', '${registro['Odometro']?.toStringAsFixed(0) ?? ''} km'],
+                    ['Diferencia Kilometros', '${registro['Diferencia Kilometros']?.toStringAsFixed(0) ?? ''} km'],
+                    ['Folio Ticket', registro['Folio Ticket'] ?? ''],
                   ],
                 ),
                 pw.SizedBox(height: 20),
@@ -488,12 +541,15 @@ Widget build(BuildContext context) {
       'Placas',
       'Importe',
       'Litros',
+      'Precio Litros',
+      'Odometro',
+      'Diferencia Kilometros',
+      'Folio Ticket',
       'Foto Placas',
       'Foto Unidad',
       'Foto Ticket',
       'Foto Odometro',
     ]);
-
     // Llenar la hoja con los datos de los registros
     for (var registro in registros) {
       // Obtener los URLs de las imágenes
@@ -509,20 +565,24 @@ Widget build(BuildContext context) {
       await _testImageAccess(fotoOdometroUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
 
       // Crear una fila con los datos
-      sheet.appendRow([
-        registro['Nombre Operador'] ?? '',
-        registro['Nombre Gasolinera'] ?? '',
-        registro['Fecha'] ?? '',
-        registro['Hora'] ?? '',
-        registro['Placas'] ?? '',
-        registro['Importe']?.toString() ?? '',
-        registro['Litros']?.toString() ?? '',
-        fotoPlacasUrl, // URL de la foto de las placas
-        fotoUnidadUrl, // URL de la foto de la unidad
-        fotoTicketUrl, // URL de la foto del ticket
-        fotoOdometroUrl, // URL de la foto del odómetro
-      ]);
-    }
+    sheet.appendRow([
+      registro['Nombre Operador'] ?? '',
+      registro['Nombre Gasolinera'] ?? '',
+      registro['Fecha'] ?? '',
+      registro['Hora'] ?? '',
+      registro['Placas'] ?? '',
+      registro['Importe']?.toString() ?? '',
+      registro['Litros']?.toString() ?? '',
+      registro['Precio Litros']?.toString() ?? '',
+      registro['Odometro']?.toString() ?? '',
+      registro['Diferencia Kilometros']?.toString() ?? '',
+      registro['Folio Ticket'] ?? '',
+      fotoPlacasUrl,
+      fotoUnidadUrl,
+      fotoTicketUrl,
+      fotoOdometroUrl,
+    ]);
+  }
 
     // Convertir el archivo Excel a bytes
     var excelBytes = excel.encode();
