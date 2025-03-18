@@ -440,9 +440,7 @@ Widget build(BuildContext context) {
             },
           ),
         );
-      }
-
-            // Primera página - Información general
+      }    // Primera página - Información general
       pdf.addPage(
         pw.Page(
           build: (pw.Context context) {

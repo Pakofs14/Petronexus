@@ -39,6 +39,7 @@ class _ReportePageState extends State<ReportePage> {
   String? _fotoTicketUrl;
   String? _fotoOdometroUrl;
   String _diferenciaKilometros = '';
+  String _rendimiento = '';
 
   // Estados de validación existentes
   bool _isImporteValid = false;
@@ -534,38 +535,61 @@ class _ReportePageState extends State<ReportePage> {
     );
   }
 
-  void _calcularDiferenciaKilometros() {
-    if (_odometroController.text.isNotEmpty) {
-      if (_odometroUltimoController.text.isEmpty || _odometroUltimoController.text == 'No hay odómetro registrado') {
+  void _calcularDiferenciaKilometros() async {
+    if (_odometroController.text.isNotEmpty && _litrosController.text.isNotEmpty) {
+      final placa = _placasController.text;
+
+      if (placa.isEmpty) {
         setState(() {
-          _diferenciaKilometros = '0 km'; // Si no hay odómetro registrado, la diferencia es 0
-          _isOdometroValid = true; // Marcar como válido para mostrar el check verde
+          _diferenciaKilometros = '0 km';
+          _rendimiento = 'No es posible calcular el rendimiento sin una placa válida.';
         });
-      } else {
+        return;
+      }
+
+      final ultimoRegistro = await _obtenerUltimoRegistro(placa);
+
+      if (ultimoRegistro == null) {
+        setState(() {
+          _diferenciaKilometros = '0 km';
+          _rendimiento = 'No es posible calcular el rendimiento sin una carga anterior.';
+        });
+        return;
+      }
+
+      try {
         int odometroActual = int.parse(_odometroController.text);
-        int odometroUltimo = int.parse(_odometroUltimoController.text);
+        int odometroUltimo = ultimoRegistro['Odometro'] ?? 0;
+        double litrosUltimo = ultimoRegistro['Litros'] ?? 0;
 
         if (odometroActual > odometroUltimo) {
           int diferencia = odometroActual - odometroUltimo;
+          double rendimiento = diferencia / litrosUltimo;
+
           setState(() {
             _diferenciaKilometros = '$diferencia km';
-            _isOdometroValid = true; // Marcar como válido para mostrar el check verde
+            _rendimiento = 'Rendimiento: ${rendimiento.toStringAsFixed(2)} km/L';
           });
         } else {
           setState(() {
             _diferenciaKilometros = 'El odómetro actual debe ser mayor al último registrado';
-            _isOdometroValid = false; // No mostrar el check verde
+            _rendimiento = 'No es posible calcular el rendimiento.';
           });
         }
+      } catch (e) {
+        setState(() {
+          _diferenciaKilometros = 'Error en el cálculo';
+          _rendimiento = 'No es posible calcular el rendimiento.';
+        });
       }
     } else {
       setState(() {
         _diferenciaKilometros = '';
-        _isOdometroValid = false; // No mostrar el check verde
+        _rendimiento = '';
       });
     }
   }
-
+  
   void _validateImporte(String value) {
     setState(() {
       _isImporteValid = value.isNotEmpty && RegExp(r'^\d+(\.\d{1,2})?$').hasMatch(value);
@@ -676,6 +700,7 @@ class _ReportePageState extends State<ReportePage> {
                     isUploaded: _fotoPlacasUrl != null,
                     imageUrl: _fotoPlacasUrl,
                     isSmallScreen: isSmallScreen,
+                    exampleImagePath: 'assets/example_images/placa.jpeg', // Ruta de la imagen de ejemplo
                   ),
                   _buildTextField(
                     controller: _importeController,
@@ -774,21 +799,17 @@ class _ReportePageState extends State<ReportePage> {
                         ),
                       ),
                     ),
-                  _buildResponsiveCameraButton(
-                    'Tomar Foto del Odómetro',
-                    'Tome una foto del odómetro del vehículo. (Foto legible)',
-                    onPressed: () {
-                      _openCameraOrFilePicker((imageData) {
-                        _showImagePreviewDialog(imageData, (imageUrl) {
-                          setState(() {
-                            _fotoOdometroUrl = imageUrl;
-                          });
-                        }, 'Foto Odómetro');
-                      });
-                    },
-                    isUploaded: _fotoOdometroUrl != null,
-                    imageUrl: _fotoOdometroUrl,
-                    isSmallScreen: isSmallScreen,
+                if (_rendimiento.isNotEmpty)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: isSmallScreen ? 12.0 : 16.0),
+                    child: Text(
+                      _rendimiento,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: _rendimiento.contains('No es posible') ? Colors.red : Colors.black,
+                      ),
+                    ),
                   ),
                   _buildTextField(
                     controller: _folioTicketController,
@@ -807,6 +828,24 @@ class _ReportePageState extends State<ReportePage> {
                     isSmallScreen: isSmallScreen,
                   ),
                   _buildResponsiveCameraButton(
+                    'Tomar Foto del Odómetro',
+                    'Tome una foto del odómetro del vehículo. (Foto legible)',
+                    onPressed: () {
+                      _openCameraOrFilePicker((imageData) {
+                        _showImagePreviewDialog(imageData, (imageUrl) {
+                          setState(() {
+                            _fotoOdometroUrl = imageUrl;
+                          });
+                        }, 'Foto Odómetro');
+                      });
+                    },
+                    isUploaded: _fotoOdometroUrl != null,
+                    imageUrl: _fotoOdometroUrl,
+                    isSmallScreen: isSmallScreen,
+                    exampleImagePath: 'assets/example_images/odometro.jpg', // Ruta de la imagen de ejemplo
+                  ),
+
+                  _buildResponsiveCameraButton(
                     'Tomar Foto del Ticket',
                     'Tome una foto del ticket de la compra de combustible. (Foto legible)',
                     onPressed: () {
@@ -821,7 +860,9 @@ class _ReportePageState extends State<ReportePage> {
                     isUploaded: _fotoTicketUrl != null,
                     imageUrl: _fotoTicketUrl,
                     isSmallScreen: isSmallScreen,
+                    exampleImagePath: 'assets/example_images/foto.jpg', // Ruta de la imagen de ejemplo
                   ),
+
                   _buildResponsiveCameraButton(
                     'Tomar Foto de la Unidad',
                     'Tome una foto de la unidad en la gasolinera. (Foto donde se vean las placas)',
@@ -837,6 +878,7 @@ class _ReportePageState extends State<ReportePage> {
                     isUploaded: _fotoUnidadUrl != null,
                     imageUrl: _fotoUnidadUrl,
                     isSmallScreen: isSmallScreen,
+                    exampleImagePath: 'assets/example_images/unidad.jpg', // Ruta de la imagen de ejemplo
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20.0),
@@ -862,7 +904,6 @@ class _ReportePageState extends State<ReportePage> {
     );
     }
 
-  // También modifica tu método de _buildTextField para cada campo específico
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -1194,12 +1235,12 @@ class _ReportePageState extends State<ReportePage> {
     bool isUploaded = false,
     String? imageUrl,
     required bool isSmallScreen,
+    required String exampleImagePath, // Nuevo parámetro para la imagen de ejemplo
   }) {
     // Acortar texto del botón en pantallas pequeñas
     String buttonText = isSmallScreen
         ? label.replaceAll('Tomar Foto de', 'Foto').replaceAll('Tomar Foto del', 'Foto')
         : label;
-
     return Padding(
       padding: EdgeInsets.only(bottom: isSmallScreen ? 12.0 : 16.0),
       child: Column(
@@ -1243,7 +1284,26 @@ class _ReportePageState extends State<ReportePage> {
               ),
               IconButton(
                 icon: Icon(Icons.help_outline, color: Colors.grey),
-                onPressed: () => _mostrarDescripcion(description),
+                onPressed: () {
+                  // Mostrar la imagen de ejemplo al hacer clic en el ícono de ayuda
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text('Ejemplo De Como $label'),
+                        content: Image.asset(exampleImagePath),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('Cerrar'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
                 padding: EdgeInsets.zero,
                 constraints: BoxConstraints(),
                 iconSize: isSmallScreen ? 20 : 24,
@@ -1332,6 +1392,50 @@ class _ReportePageState extends State<ReportePage> {
     return null; // Si no se encuentra ningún registro
   }
 
+  Future<Map<String, dynamic>?> _obtenerUltimoRegistro(String placa) async {
+    final airtableApiToken = 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
+    final airtableBaseId = 'appk2qomcs0VaYbCD';
+    final airtableTableName = 'Gasolina';
+    final url = 'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $airtableApiToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final records = data['records'];
+
+        // Filtrar los registros por la placa seleccionada
+        final registrosPlaca = records.where((record) =>
+            record['fields']['Placas'] == placa).toList();
+
+        if (registrosPlaca.isNotEmpty) {
+          // Convertir las fechas a DateTime antes de ordenar
+          registrosPlaca.sort((a, b) {
+            DateTime fechaA = DateTime.parse(a['fields']['Fecha']);
+            DateTime fechaB = DateTime.parse(b['fields']['Fecha']);
+            return fechaB.compareTo(fechaA); // Ordenar de más reciente a más antiguo
+          });
+
+          // Obtener el último registro
+          final ultimoRegistro = registrosPlaca.first['fields'];
+          return ultimoRegistro;
+        }
+      } else {
+        throw Exception('Error al obtener datos de Airtable: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+
+    return null; // Si no se encuentra ningún registro
+  }
+
   Future<void> _enviarFormulario() async {
     if (_formKey.currentState!.validate() &&
         _isOperadorValid &&
@@ -1353,8 +1457,7 @@ class _ReportePageState extends State<ReportePage> {
         final airtableBaseId = 'appk2qomcs0VaYbCD';
         final airtableTableName = 'Gasolina';
         final url = 'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
-
-        print('Enviando formulario...');
+       
         final response = await http.post(
           Uri.parse(url),
           headers: {
@@ -1374,6 +1477,7 @@ class _ReportePageState extends State<ReportePage> {
               "Precio Litros": double.parse(_precioPorLitro),
               "Odometro": int.parse(_odometroController.text),
               "Diferencia Kilometros": int.parse(_diferenciaKilometros.replaceAll(' km', '')),
+              "Rendimiento": _rendimiento.contains('Rendimiento') ? double.parse(_rendimiento.replaceAll('Rendimiento: ', '').replaceAll(' km/L', '')) : null,
               "Folio Ticket": _folioTicketController.text,
               "Foto Placas": [
                 {
@@ -1398,8 +1502,6 @@ class _ReportePageState extends State<ReportePage> {
             },
           }),
         );
-        print('Formulario enviado. Respuesta: ${response.statusCode}');
-
         // Cerrar el diálogo de carga
         Navigator.of(context).pop();
 

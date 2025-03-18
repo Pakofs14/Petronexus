@@ -93,6 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _mostrarDialogoLogin(BuildContext context, String permiso, Widget page) {
     final TextEditingController _usernameController = TextEditingController();
     final TextEditingController _passwordController = TextEditingController();
+    bool _obscureText = true; // Estado para controlar la visibilidad de la contraseña
 
     showDialog(
       context: context,
@@ -112,11 +113,21 @@ class _MyHomePageState extends State<MyHomePage> {
               const SizedBox(height: 10),
               TextFormField(
                 controller: _passwordController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Contraseña',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureText ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureText = !_obscureText; // Alternar la visibilidad de la contraseña
+                      });
+                    },
+                  ),
                 ),
-                obscureText: true,
+                obscureText: _obscureText, // Usar el estado para controlar la visibilidad
               ),
             ],
           ),

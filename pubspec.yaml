@@ -32,6 +32,10 @@ flutter:
   assets:
     - assets/images/oil.jpg
     - assets/images/lateral.jpg
+    - assets/example_images/placa.jpeg
+    - assets/example_images/odometro.jpg
+    - assets/example_images/foto.jpg
+    - assets/example_images/unidad.jpg
 
   fonts:
     - family: Roboto # Nombre de la familia de fuentes
