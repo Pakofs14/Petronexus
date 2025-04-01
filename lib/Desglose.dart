@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:excel/excel.dart';
 import 'dart:typed_data';
+
+
 class DesglosePage extends StatefulWidget {
   @override
   _DesglosePageState createState() => _DesglosePageState();
@@ -276,7 +278,6 @@ Widget build(BuildContext context) {
     final airtableApiToken = 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
     final airtableBaseId = 'appk2qomcs0VaYbCD';
     final airtableTableName = 'Gasolina';
-
     final url = 'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
 
     try {
@@ -526,81 +527,81 @@ Widget build(BuildContext context) {
     }
   }
     
-  Future<void> _downloadExcel(List<Map<String, dynamic>> registros) async {
-    var excel = Excel.createExcel();
-    var sheet = excel['Sheet1'];
+Future<void> _downloadExcel(List<Map<String, dynamic>> registros) async {
+  var excel = Excel.createExcel();
+  var sheet = excel['Sheet1'];
 
-    // Definir los encabezados de las columnas
+  // Definir los encabezados de las columnas
+  sheet.appendRow([
+    TextCellValue('Operador'),
+    TextCellValue('Gasolinera'),
+    TextCellValue('Fecha'),
+    TextCellValue('Hora'),
+    TextCellValue('Placas'),
+    TextCellValue('Importe'),
+    TextCellValue('Litros'),
+    TextCellValue('Precio Litros'),
+    TextCellValue('Odometro'),
+    TextCellValue('Diferencia Kilometros'),
+    TextCellValue('Folio Ticket'),
+    TextCellValue('Foto Placas'),
+    TextCellValue('Foto Unidad'),
+    TextCellValue('Foto Ticket'),
+    TextCellValue('Foto Odometro'),
+  ]);
+
+  // Llenar la hoja con los datos de los registros
+  for (var registro in registros) {
+    // Obtener los URLs de las imágenes
+    final fotoPlacasUrl = registro['Foto Placas']?[0]['url'] ?? '';
+    final fotoUnidadUrl = registro['Foto Unidad']?[0]['url'] ?? '';
+    final fotoTicketUrl = registro['Foto Ticket']?[0]['url'] ?? '';
+    final fotoOdometroUrl = registro['Foto Odometro']?[0]['url'] ?? '';
+
+    // Verificar el acceso a las imágenes (opcional)
+    await _testImageAccess(fotoPlacasUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
+    await _testImageAccess(fotoUnidadUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
+    await _testImageAccess(fotoTicketUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
+    await _testImageAccess(fotoOdometroUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
+
+    // Crear una fila con los datos como CellValue
     sheet.appendRow([
-      'Operador',
-      'Gasolinera',
-      'Fecha',
-      'Hora',
-      'Placas',
-      'Importe',
-      'Litros',
-      'Precio Litros',
-      'Odometro',
-      'Diferencia Kilometros',
-      'Folio Ticket',
-      'Foto Placas',
-      'Foto Unidad',
-      'Foto Ticket',
-      'Foto Odometro',
-    ]);
-    // Llenar la hoja con los datos de los registros
-    for (var registro in registros) {
-      // Obtener los URLs de las imágenes
-      final fotoPlacasUrl = registro['Foto Placas']?[0]['url'] ?? '';
-      final fotoUnidadUrl = registro['Foto Unidad']?[0]['url'] ?? '';
-      final fotoTicketUrl = registro['Foto Ticket']?[0]['url'] ?? '';
-      final fotoOdometroUrl = registro['Foto Odometro']?[0]['url'] ?? '';
-
-      // Verificar el acceso a las imágenes
-      await _testImageAccess(fotoPlacasUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
-      await _testImageAccess(fotoUnidadUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
-      await _testImageAccess(fotoTicketUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
-      await _testImageAccess(fotoOdometroUrl, 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec');
-
-      // Crear una fila con los datos
-    sheet.appendRow([
-      registro['Nombre Operador'] ?? '',
-      registro['Nombre Gasolinera'] ?? '',
-      registro['Fecha'] ?? '',
-      registro['Hora'] ?? '',
-      registro['Placas'] ?? '',
-      registro['Importe']?.toString() ?? '',
-      registro['Litros']?.toString() ?? '',
-      registro['Precio Litros']?.toString() ?? '',
-      registro['Odometro']?.toString() ?? '',
-      registro['Diferencia Kilometros']?.toString() ?? '',
-      registro['Folio Ticket'] ?? '',
-      fotoPlacasUrl,
-      fotoUnidadUrl,
-      fotoTicketUrl,
-      fotoOdometroUrl,
+      TextCellValue(registro['Nombre Operador']?.toString() ?? ''),
+      TextCellValue(registro['Nombre Gasolinera']?.toString() ?? ''),
+      TextCellValue(registro['Fecha']?.toString() ?? ''),
+      TextCellValue(registro['Hora']?.toString() ?? ''),
+      TextCellValue(registro['Placas']?.toString() ?? ''),
+      TextCellValue(registro['Importe']?.toString() ?? ''),
+      TextCellValue(registro['Litros']?.toString() ?? ''),
+      TextCellValue(registro['Precio Litros']?.toString() ?? ''),
+      TextCellValue(registro['Odometro']?.toString() ?? ''),
+      TextCellValue(registro['Diferencia Kilometros']?.toString() ?? ''),
+      TextCellValue(registro['Folio Ticket']?.toString() ?? ''),
+      TextCellValue(fotoPlacasUrl),
+      TextCellValue(fotoUnidadUrl),
+      TextCellValue(fotoTicketUrl),
+      TextCellValue(fotoOdometroUrl),
     ]);
   }
 
-    // Convertir el archivo Excel a bytes
-    var excelBytes = excel.encode();
+  // Convertir el archivo Excel a bytes
+  var excelBytes = excel.encode();
 
-    if (excelBytes != null) {
-      // Crear un Blob con los bytes del archivo Excel
-      final blob = html.Blob([Uint8List.fromList(excelBytes)], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      final url = html.Url.createObjectUrlFromBlob(blob);
+  if (excelBytes != null) {
+    // Crear un Blob con los bytes del archivo Excel
+    final blob = html.Blob([Uint8List.fromList(excelBytes)], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    final url = html.Url.createObjectUrlFromBlob(blob);
 
-      // Crear un enlace de descarga
-      final anchor = html.document.createElement('a') as html.AnchorElement
-        ..href = url
-        ..download = 'reporte_gasolina.xlsx';
-      html.document.body?.children.add(anchor);
-      anchor.click();
-      html.document.body?.children.remove(anchor);
-      html.Url.revokeObjectUrl(url);
-    }
+    // Crear un enlace de descarga
+    final anchor = html.document.createElement('a') as html.AnchorElement
+      ..href = url
+      ..download = 'reporte_gasolina.xlsx';
+    html.document.body?.children.add(anchor);
+    anchor.click();
+    html.document.body?.children.remove(anchor);
+    html.Url.revokeObjectUrl(url);
   }
-
+}
   Future<void> _testImageAccess(String imageUrl, String authToken) async {
     try {
       final response = await http.get(

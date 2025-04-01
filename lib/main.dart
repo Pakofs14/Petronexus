@@ -5,6 +5,8 @@ import 'package:petronexus/password.dart';
 import 'dart:convert';
 import 'package:petronexus/reporte.dart';
 import 'package:petronexus/desglose.dart';
+import 'package:petronexus/entrada.dart'; // Asegúrate de crear este archivo
+import 'package:petronexus/salida.dart';   // Asegúrate de crear este archivo
 
 void main() => runApp(MyApp());
 
@@ -70,6 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
           final permisoSubir = record['fields']['Permiso Subir'] == 'Si';
           final permisoDescargar = record['fields']['Permiso Descargar'] == 'Si';
           final permisoPassword = record['fields']['Permiso Password'] == 'Si';
+          final permisoAlmacen = record['fields']['Permiso Almacen'] == 'Si'; // Nuevo permiso
 
           if (usuario != null && password != null) {
             _usuarios[usuario] = {
@@ -77,6 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
               'subir': permisoSubir,
               'descargar': permisoDescargar,
               'contraseñas': permisoPassword,
+              'almacen': permisoAlmacen, // Agregar el nuevo permiso
             };
           }
         }
@@ -90,95 +94,116 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _mostrarDialogoLogin(BuildContext context, String permiso, Widget page) {
+  void _mostrarDialogoLogin(BuildContext context, {String? permiso, Widget? page, String? customMessage}) {
     final TextEditingController _usernameController = TextEditingController();
     final TextEditingController _passwordController = TextEditingController();
-    bool _obscureText = true; // Estado para controlar la visibilidad de la contraseña
+    bool _obscureText = true;
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Iniciar sesión'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _usernameController,
-                decoration: const InputDecoration(
-                  labelText: 'Usuario',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Contraseña',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureText ? Icons.visibility : Icons.visibility_off,
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Iniciar sesión'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (customMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(customMessage, style: TextStyle(color: Colors.red)),
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureText = !_obscureText; // Alternar la visibilidad de la contraseña
-                      });
-                    },
+                  TextFormField(
+                    controller: _usernameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Usuario',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
-                ),
-                obscureText: _obscureText, // Usar el estado para controlar la visibilidad
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () async {
-                final username = _usernameController.text;
-                final password = _passwordController.text;
-
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 20),
-                          Text('Validando credenciales...'),
-                        ],
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: InputDecoration(
+                      labelText: 'Contraseña',
+                      border: const OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureText ? Icons.visibility : Icons.visibility_off,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureText = !_obscureText;
+                          });
+                        },
                       ),
+                    ),
+                    obscureText: _obscureText,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    final username = _usernameController.text;
+                    final password = _passwordController.text;
+
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (BuildContext context) {
+                        return const AlertDialog(
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 20),
+                              Text('Validando credenciales...'),
+                            ],
+                          ),
+                        );
+                      },
                     );
-                  },
-                );
 
-                await Future.delayed(const Duration(seconds: 2));
+                    await Future.delayed(const Duration(seconds: 2));
 
-                Navigator.of(context).pop();
-
-                if (_usuarios.containsKey(username)) {
-                  if (_usuarios[username]!['password'] == password) {
-                    _usuarioActual = username;
                     Navigator.of(context).pop();
-                    _verificarPermiso(permiso, page);
-                  } else {
-                    _mostrarMensajeError(context, 'Contraseña incorrecta');
-                  }
-                } else {
-                  _mostrarMensajeError(context, 'Usuario no encontrado');
-                }
-              },
-              child: const Text('Iniciar sesión'),
-            ),
-          ],
+
+                    if (_usuarios.containsKey(username)) {
+                      if (_usuarios[username]!['password'] == password) {
+                        _usuarioActual = username;
+                        Navigator.of(context).pop();
+                        
+                        if (permiso != null && page != null) {
+                          _verificarPermiso(permiso, page);
+                        }
+                      } else {
+                        _mostrarDialogoLogin(
+                          context,
+                          permiso: permiso,
+                          page: page,
+                          customMessage: 'Contraseña incorrecta',
+                        );
+                      }
+                    } else {
+                      _mostrarDialogoLogin(
+                        context,
+                        permiso: permiso,
+                        page: page,
+                        customMessage: 'Usuario no encontrado',
+                      );
+                    }
+                  },
+                  child: const Text('Iniciar sesión'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -186,7 +211,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _verificarPermiso(String permiso, Widget page) {
     if (_usuarioActual != null && _usuarios[_usuarioActual]![permiso]) {
-      _navegarConFade(context, page); // Navegación con efecto de fade
+      _navegarConFade(context, page);
     } else {
       showDialog(
         context: context,
@@ -196,9 +221,7 @@ class _MyHomePageState extends State<MyHomePage> {
             content: const Text('No tienes permiso para acceder a esta sección.'),
             actions: [
               TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+                onPressed: () => Navigator.of(context).pop(),
                 child: const Text('Aceptar'),
               ),
             ],
@@ -206,46 +229,6 @@ class _MyHomePageState extends State<MyHomePage> {
         },
       );
     }
-  }
-
-  void _mostrarMensajeError(BuildContext context, String mensaje) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Error'),
-          content: Text(mensaje),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Aceptar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _mostrarDialogo(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Función no disponible'),
-          content: const Text('Esta función estará disponible próximamente.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Aceptar'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void _navegarConFade(BuildContext context, Widget page) {
@@ -260,6 +243,27 @@ class _MyHomePageState extends State<MyHomePage> {
         },
         transitionDuration: const Duration(milliseconds: 500),
       ),
+    );
+  }
+
+  // Agrega este método en la clase _MyHomePageState
+  void _mostrarDialogo(BuildContext context, {String? mensaje}) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Función no disponible'),
+          content: Text(mensaje ?? 'Esta función estará disponible próximamente.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Aceptar'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -307,14 +311,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   leading: const Icon(FontAwesomeIcons.upload),
                   title: const Text('Subir carga de gasolina'),
                   onTap: () {
-                    _mostrarDialogoLogin(context, 'subir', ReportePage());
+                    _mostrarDialogoLogin(context, permiso: 'subir', page: ReportePage());
                   },
                 ),
                 ListTile(
                   leading: const Icon(FontAwesomeIcons.fileAlt),
                   title: const Text('Reportes de gasolina'),
                   onTap: () {
-                    _mostrarDialogoLogin(context, 'descargar', DesglosePage());
+                    _mostrarDialogoLogin(context, permiso: 'descargar', page: DesglosePage());
                   },
                 ),
               ],
@@ -339,11 +343,39 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ],
             ),
+            ExpansionTile(
+              leading: const Icon(FontAwesomeIcons.warehouse),
+              title: const Text('Almacén'),
+              children: [
+                ListTile(
+                  leading: const Icon(FontAwesomeIcons.boxOpen),
+                  title: const Text('Entrada Almacén'),
+                  onTap: () {
+                    _mostrarDialogoLogin(
+                      context,
+                      permiso: 'almacen',
+                      page: EntradaAlmacenPage(usuario: _usuarioActual ?? ''),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(FontAwesomeIcons.dolly),
+                  title: const Text('Salida Almacén'),
+                  onTap: () {
+                    _mostrarDialogoLogin(
+                      context,
+                      permiso: 'almacen',
+                      page: SalidaAlmacenPage(usuario: _usuarioActual ?? ''),
+                    );
+                  },
+                ),
+              ],
+            ),
             ListTile(
               leading: const Icon(Icons.people),
               title: const Text('Usuarios'),
               onTap: () {
-                _mostrarDialogoLogin(context, 'contraseñas', PasswordPage());
+                _mostrarDialogoLogin(context, permiso: 'contraseñas', page: PasswordPage());
               },
             ),
           ],
