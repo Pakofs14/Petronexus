@@ -12,6 +12,9 @@ class ReportePage extends StatefulWidget {
 }
 
 class _ReportePageState extends State<ReportePage> {
+  // Nuevo estado para controlar el tipo de vehículo seleccionado
+  String? _tipoVehiculo;
+  bool _showVehicleSelectionDialog = true;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _operadorController = TextEditingController();
   final TextEditingController _gasolineraController = TextEditingController();
@@ -22,6 +25,20 @@ class _ReportePageState extends State<ReportePage> {
   final TextEditingController _odometroUltimoController =
       TextEditingController();
   final TextEditingController _folioTicketController = TextEditingController();
+
+  final List<String> _contratos = [
+    '850',
+    '853',
+    '860',
+    '870',
+    '871',
+    '801',
+    '802',
+    '819',
+    '615'
+  ];
+  String? _contratoSeleccionado;
+  bool _isContratoValid = false;
 
   // FocusNodes para cada campo de texto
   final FocusNode _operadorFocusNode = FocusNode();
@@ -217,6 +234,37 @@ class _ReportePageState extends State<ReportePage> {
     'NW82877',
     'PAZ9825',
     'WM29012',
+    // Agregar las nuevas placas
+    'WM29012',
+    'MTZ2456',
+    'HD5327A',
+    'PAZ9825',
+    'GZ0224A',
+    'GZ0227A',
+    'KZ99367',
+    '29AG7M',
+    'GZ1595B',
+    'GZ1608B',
+    'MTZ2485',
+    'GZ2615E',
+    'GY2465A'
+  ];
+
+  // Lista de placas que no tienen odómetro funcional
+  final List<String> _placasSinOdometro = [
+    'WM29012',
+    'MTZ2456',
+    'HD5327A',
+    'PAZ9825',
+    'GZ0224A',
+    'GZ0227A',
+    'KZ99367',
+    '29AG7M',
+    'GZ1595B',
+    'GZ1608B',
+    'MTZ2485',
+    'GZ2615E',
+    'GY2465A'
   ];
   // Tipo de gasolina seleccionada
   String? _tipoGasolina;
@@ -239,6 +287,19 @@ class _ReportePageState extends State<ReportePage> {
         () => _onFocusChange(_odometroFocusNode, _validateOdometro));
     _gasolineraController.text = 'GASOLINERA LOS TOROS';
     _validateGasolinera('GASOLINERA LOS TOROS');
+
+    _litrosFocusNode.addListener(() {
+      if (!_litrosFocusNode.hasFocus) {
+        // Solo validar cuando pierde el foco
+        _validateLitros(_litrosController.text);
+
+        // Mostrar error si no es válido
+        if (!_isLitrosValid && _litrosController.text.isNotEmpty) {
+          _mostrarErrorDecimalesLitros(context,
+              'Debe incluir punto decimal y exactamente 3 decimales (ejemplo: 45.678)');
+        }
+      }
+    });
   }
 
   @override
@@ -287,8 +348,40 @@ class _ReportePageState extends State<ReportePage> {
   }
 
   void _onPlacasChanged(String value) {
-    _validatePlacas(value); // Validar el campo de placas
-    _actualizarOdometroUltimo(value); // Actualizar el odómetro último
+    _validatePlacas(value);
+
+    if (_placasSinOdometro.contains(value)) {
+      // Mostrar mensaje emergente para placas sin odómetro
+      _mostrarMensajeOdometroNoFuncional();
+
+      setState(() {
+        _odometroController.text = '0';
+        _odometroUltimoController.text = 'Odómetro no funciona';
+        _isOdometroValid = true; // Forzar validación para permitir enviar
+      });
+    } else {
+      _actualizarOdometroUltimo(value);
+    }
+  }
+
+  void _mostrarMensajeOdometroNoFuncional() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Aviso importante'),
+          content: Text('Esta unidad no tiene odómetro funcional. '
+              'Por favor capture los datos restantes y tome foto del odómetro.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Entendido'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _validateFolioTicket(String value) {
@@ -297,10 +390,12 @@ class _ReportePageState extends State<ReportePage> {
     });
   }
 
+  // En el método _validatePlacas:
   void _validatePlacas(String value) {
     bool isValid = value.isNotEmpty &&
-        RegExp(r'^[a-zA-Z0-9]+$').hasMatch(value) &&
-        value.length <= 7;
+        RegExp(r'^[a-zA-Z0-9-]+$').hasMatch(value) && // Añade el guion
+        value.length <= 10; // Aumenta el límite si es necesario
+
     if (_isPlacasValid != isValid) {
       setState(() {
         _isPlacasValid = isValid;
@@ -422,6 +517,12 @@ class _ReportePageState extends State<ReportePage> {
           onImageSelected(reader.result as String);
         });
       }
+    });
+  }
+
+  void _validateContrato(String? value) {
+    setState(() {
+      _isContratoValid = value != null && value.isNotEmpty;
     });
   }
 
@@ -790,13 +891,33 @@ class _ReportePageState extends State<ReportePage> {
   }
 
   void _validateLitros(String value) {
+    bool isValid = value.isNotEmpty && RegExp(r'^\d+\.\d{3}$').hasMatch(value);
+
     setState(() {
-      _isLitrosValid =
-          value.isNotEmpty && RegExp(r'^\d+(\.\d{1,2})?$').hasMatch(value);
-      if (_isImporteValid && _isLitrosValid) {
-        _calcularPrecioPorLitro();
-      }
+      _isLitrosValid = isValid;
     });
+
+    if (_isImporteValid && _isLitrosValid) {
+      _calcularPrecioPorLitro();
+    }
+  }
+
+  void _mostrarErrorDecimalesLitros(BuildContext context, String mensaje) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Formato incorrecto'),
+          content: Text(mensaje),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Entendido'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _calcularPrecioPorLitro() {
@@ -823,298 +944,411 @@ class _ReportePageState extends State<ReportePage> {
     }
   }
 
+  void _showVehicleSelectionDialogWidget(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Seleccione el tipo de vehículo',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildVehicleOption(
+                  context,
+                  icon: Icons.directions_car,
+                  label: 'Camioneta/Auto',
+                  value: 'Camioneta',
+                ),
+                SizedBox(height: 16),
+                _buildVehicleOption(
+                  context,
+                  icon: Icons.electrical_services,
+                  label: 'Generador Eléctrico',
+                  value: 'Generador',
+                ),
+                SizedBox(height: 16),
+                _buildVehicleOption(
+                  context,
+                  icon: Icons.air,
+                  label: 'Compresora',
+                  value: 'Compresora',
+                ),
+                SizedBox(height: 16),
+                _buildVehicleOption(
+                  context,
+                  icon: Icons.build,
+                  label: 'Grúa',
+                  value: 'Grua',
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Obtenemos el tamaño de la pantalla para adaptaciones
     final Size screenSize = MediaQuery.of(context).size;
     final bool isSmallScreen = screenSize.width < 600;
 
+    // Mostrar diálogo después de que el widget se haya construido
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_showVehicleSelectionDialog && mounted) {
+        _showVehicleSelectionDialogWidget(context);
+        setState(() {
+          _showVehicleSelectionDialog = false;
+        });
+      }
+    });
+
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Reporte de Carga de Combustible'),
-          backgroundColor: Color(0xFFC0261F),
-          foregroundColor: Colors.white,
-          iconTheme: IconThemeData(color: Colors.white),
-        ),
-        body: SafeArea(
-          child: GestureDetector(
-            onTap: () {
-              // Cerrar el teclado al tocar fuera de un campo de texto
-              FocusScope.of(context).unfocus();
-            },
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _buildDropdownOperador(
-                      label: 'Nombre del Operador',
-                      description: 'Seleccione el nombre del operador.',
-                      isSmallScreen: isSmallScreen,
-                    ),
-                    _buildDropdownGasolinera(
-                      label: 'Nombre de la Gasolinera',
-                      description:
-                          'Seleccione la gasolinera donde se realizó la carga.',
-                      isSmallScreen: isSmallScreen,
-                    ),
-                    _buildReadOnlyTextField(
-                      label: 'Fecha',
-                      initialValue: _fechaHoy,
-                      description: 'Fecha de hoy (automática).',
-                      isSmallScreen: isSmallScreen,
-                      showCheckIcon: true, // Mostrar el ícono verde
-                    ),
-                    _buildReadOnlyTextField(
-                      label: 'Hora',
-                      initialValue: _horaActual,
-                      description: 'Hora actual (automática).',
-                      isSmallScreen: isSmallScreen,
-                      showCheckIcon: true, // Mostrar el ícono verde
-                    ),
-                    // Reemplazar el campo de placas con el nuevo método
-                    _buildPlacasField(
-                      isSmallScreen: isSmallScreen,
-                    ),
-                    _buildResponsiveCameraButton(
-                      'Tomar Foto de las placas',
-                      'Tome una foto de las placas del vehículo. (Foto legible)',
-                      onPressed: () {
-                        _openCameraOrFilePicker((imageData) {
-                          _showImagePreviewDialog(imageData, (imageUrl) {
-                            setState(() {
-                              _fotoPlacasUrl = imageUrl;
-                            });
-                          }, 'Foto Placas');
-                        });
-                      },
-                      isUploaded: _fotoPlacasUrl != null,
-                      imageUrl: _fotoPlacasUrl,
-                      isSmallScreen: isSmallScreen,
-                      exampleImagePath:
-                          'assets/example_images/placa.jpeg', // Ruta de la imagen de ejemplo
-                    ),
-                    _buildTextField(
-                      controller: _importeController,
-                      label: 'Importe Total (\$)',
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Ingrese el importe total';
-                        } else if (!RegExp(r'^\d+(\.\d{1,2})?$')
-                            .hasMatch(value)) {
-                          return 'Formato incorrecto. Use hasta 2 decimales';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        _validateImporte(value);
-                        _calcularPrecioPorLitro();
-                      },
-                      isValid: _isImporteValid,
-                      focusNode: _importeFocusNode,
-                      description:
-                          'Ingrese el importe total del combustible cargado. (Tal cual se muestra en el ticket)',
-                      isSmallScreen: isSmallScreen,
-                    ),
-                    _buildTextField(
-                      controller: _litrosController,
-                      label: 'Litros Cargados',
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Ingrese la cantidad de litros cargados';
-                        } else if (!RegExp(r'^\d+(\.\d{1,2})?$')
-                            .hasMatch(value)) {
-                          return 'Formato incorrecto. Use hasta 2 decimales';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        _validateLitros(value);
-                        _calcularPrecioPorLitro();
-                      },
-                      isValid: _isLitrosValid,
-                      focusNode: _litrosFocusNode,
-                      description:
-                          'Ingrese la cantidad de litros de combustible cargados. (Tal cual se muestra en el ticket)',
-                      isSmallScreen: isSmallScreen,
-                    ),
-                    if (_precioPorLitro.isNotEmpty)
-                      Padding(
-                        padding: EdgeInsets.only(
-                            bottom: isSmallScreen ? 12.0 : 16.0),
-                        child: Text(
-                          'Precio por litro: \$$_precioPorLitro',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+      appBar: AppBar(
+        title: Text('Reporte de Carga de Combustible'),
+        backgroundColor: Color(0xFFC0261F),
+        foregroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.white),
+      ),
+      body: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Campos comunes para todos los tipos de vehículos
+                      _buildDropdownOperador(
+                        label: 'Nombre del Operador',
+                        description: 'Seleccione el nombre del operador.',
+                        isSmallScreen: isSmallScreen,
+                      ),
+                      _buildDropdownGasolinera(
+                        label: 'Nombre de la Gasolinera',
+                        description:
+                            'Seleccione la gasolinera donde se realizó la carga.',
+                        isSmallScreen: isSmallScreen,
+                      ),
+                      _buildReadOnlyTextField(
+                        label: 'Fecha',
+                        initialValue: _fechaHoy,
+                        description: 'Fecha de hoy (automática).',
+                        isSmallScreen: isSmallScreen,
+                        showCheckIcon: true,
+                      ),
+                      _buildReadOnlyTextField(
+                        label: 'Hora',
+                        initialValue: _horaActual,
+                        description: 'Hora actual (automática).',
+                        isSmallScreen: isSmallScreen,
+                        showCheckIcon: true,
+                      ),
+                      _buildDropdownContrato(
+                        label: 'Contrato',
+                        description: 'Seleccione el contrato correspondiente.',
+                        isSmallScreen: isSmallScreen,
+                      ),
+                      _buildTextField(
+                        controller: _importeController,
+                        label: 'Importe Total (\$)',
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Ingrese el importe total';
+                          } else if (!RegExp(r'^\d+(\.\d{1,2})?$')
+                              .hasMatch(value)) {
+                            return 'Formato incorrecto. Use hasta 2 decimales';
+                          }
+                          return null;
+                        },
+                        onChanged: (value) {
+                          _validateImporte(value);
+                          _calcularPrecioPorLitro();
+                        },
+                        isValid: _isImporteValid,
+                        focusNode: _importeFocusNode,
+                        description:
+                            'Ingrese el importe total del combustible cargado.',
+                        isSmallScreen: isSmallScreen,
+                      ),
+                      _buildTextField(
+                        controller: _litrosController,
+                        label: 'Litros Cargados',
+                        keyboardType:
+                            TextInputType.numberWithOptions(decimal: true),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Ingrese la cantidad de litros cargados';
+                          } else if (!RegExp(r'^\d+\.\d{3}$').hasMatch(value)) {
+                            return 'Formato incorrecto. Use punto y exactamente 3 decimales';
+                          }
+                          return null;
+                        },
+                        onChanged: (value) {
+                          _validateLitros(value);
+                          _calcularPrecioPorLitro();
+                        },
+                        isValid: _isLitrosValid,
+                        focusNode: _litrosFocusNode,
+                        description:
+                            'Ingrese la cantidad de litros de combustible cargados (ejemplo: 45.678).',
+                        isSmallScreen: isSmallScreen,
+                      ),
+                      if (_precioPorLitro.isNotEmpty)
+                        Padding(
+                          padding: EdgeInsets.only(
+                              bottom: isSmallScreen ? 12.0 : 16.0),
+                          child: Text(
+                            'Precio por litro: \$$_precioPorLitro',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
+                      _buildDropdownTipoGasolina(
+                        label: 'Tipo de Gasolina',
+                        description: 'Seleccione el tipo de gasolina cargada.',
+                        isSmallScreen: isSmallScreen,
                       ),
-                    _buildDropdownTipoGasolina(
-                      label: 'Tipo de Gasolina',
-                      description: 'Seleccione el tipo de gasolina cargada.',
-                      isSmallScreen: isSmallScreen,
-                    ),
-                    _buildTextField(
-                      controller: _odometroController,
-                      label: 'Odómetro',
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Ingrese el número del odómetro';
-                        } else if (!RegExp(r'^\d+$').hasMatch(value)) {
-                          return 'El odómetro debe ser un número entero';
-                        }
-                        return null;
-                      },
-                      onChanged: _validateOdometro,
-                      isValid: _isOdometroValid,
-                      focusNode: _odometroFocusNode,
-                      description:
-                          'Ingrese el número del odómetro del vehículo.',
-                      isSmallScreen: isSmallScreen,
-                    ),
-                    // Campo de solo lectura para el último odómetro
-                    _buildTextField(
-                      controller: _odometroUltimoController,
-                      label: 'Odómetro Última Carga',
-                      keyboardType: TextInputType.number,
-                      description:
-                          'Último odómetro registrado para la placa seleccionada.',
-                      isSmallScreen: isSmallScreen,
-                      enabled: false, // Deshabilitar la edición manual
-                    ),
-                    if (_diferenciaKilometros.isNotEmpty)
-                      Padding(
-                        padding: EdgeInsets.only(
-                            bottom: isSmallScreen ? 12.0 : 16.0),
-                        child: Text(
-                          'Kilómetros recorridos: $_diferenciaKilometros',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color:
-                                _diferenciaKilometros.contains('debe ser mayor')
+                      _buildTextField(
+                        controller: _folioTicketController,
+                        label: 'Folio del Ticket',
+                        keyboardType: TextInputType.text,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Ingrese el folio del ticket';
+                          }
+                          return null;
+                        },
+                        onChanged: _validateFolioTicket,
+                        isValid: _isFolioTicketValid,
+                        focusNode: _folioTicketFocusNode,
+                        description:
+                            'Ingrese el folio del ticket de la compra de combustible.',
+                        isSmallScreen: isSmallScreen,
+                      ),
+                      _buildResponsiveCameraButton(
+                        'Tomar Foto del Ticket',
+                        'Tome una foto del ticket de la compra de combustible.',
+                        onPressed: () {
+                          _openCameraOrFilePicker((imageData) {
+                            _showImagePreviewDialog(imageData, (imageUrl) {
+                              setState(() {
+                                _fotoTicketUrl = imageUrl;
+                              });
+                            }, 'Foto Ticket');
+                          });
+                        },
+                        isUploaded: _fotoTicketUrl != null,
+                        imageUrl: _fotoTicketUrl,
+                        isSmallScreen: isSmallScreen,
+                        exampleImagePath: 'assets/example_images/foto.jpg',
+                      ),
+                      _buildResponsiveCameraButton(
+                        'Tomar Foto de la Unidad',
+                        'Tome una foto de la unidad/equipo.',
+                        onPressed: () {
+                          _openCameraOrFilePicker((imageData) {
+                            _showImagePreviewDialog(imageData, (imageUrl) {
+                              setState(() {
+                                _fotoUnidadUrl = imageUrl;
+                              });
+                            }, 'Foto Unidad');
+                          });
+                        },
+                        isUploaded: _fotoUnidadUrl != null,
+                        imageUrl: _fotoUnidadUrl,
+                        isSmallScreen: isSmallScreen,
+                        exampleImagePath: 'assets/example_images/unidad.jpg',
+                      ),
+
+                      // Campos específicos para camioneta/auto
+                      if (_tipoVehiculo == 'Camioneta') ...[
+                        _buildPlacasField(
+                          isSmallScreen: isSmallScreen,
+                        ),
+                        _buildTextField(
+                          controller: _odometroController,
+                          label: 'Odómetro',
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Ingrese el número del odómetro';
+                            } else if (!RegExp(r'^\d+$').hasMatch(value)) {
+                              return 'El odómetro debe ser un número entero';
+                            }
+                            return null;
+                          },
+                          onChanged: _validateOdometro,
+                          isValid: _isOdometroValid,
+                          focusNode: _odometroFocusNode,
+                          description:
+                              'Ingrese el número del odómetro del vehículo.',
+                          isSmallScreen: isSmallScreen,
+                        ),
+                        _buildTextField(
+                          controller: _odometroUltimoController,
+                          label: 'Odómetro Última Carga',
+                          keyboardType: TextInputType.number,
+                          description:
+                              'Último odómetro registrado para la placa seleccionada.',
+                          isSmallScreen: isSmallScreen,
+                          enabled: false,
+                        ),
+                        if (_diferenciaKilometros.isNotEmpty)
+                          Padding(
+                            padding: EdgeInsets.only(
+                                bottom: isSmallScreen ? 12.0 : 16.0),
+                            child: Text(
+                              'Kilómetros recorridos: $_diferenciaKilometros',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: _diferenciaKilometros
+                                        .contains('debe ser mayor')
                                     ? Colors.red
                                     : Colors.black,
+                              ),
+                            ),
                           ),
+                        if (_rendimiento.isNotEmpty)
+                          Padding(
+                            padding: EdgeInsets.only(
+                                bottom: isSmallScreen ? 12.0 : 16.0),
+                            child: Text(
+                              _rendimiento,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: _rendimiento.contains('No es posible')
+                                    ? Colors.red
+                                    : Colors.black,
+                              ),
+                            ),
+                          ),
+                        _buildResponsiveCameraButton(
+                          'Tomar Foto de las placas',
+                          'Tome una foto de las placas del vehículo.',
+                          onPressed: () {
+                            _openCameraOrFilePicker((imageData) {
+                              _showImagePreviewDialog(imageData, (imageUrl) {
+                                setState(() {
+                                  _fotoPlacasUrl = imageUrl;
+                                });
+                              }, 'Foto Placas');
+                            });
+                          },
+                          isUploaded: _fotoPlacasUrl != null,
+                          imageUrl: _fotoPlacasUrl,
+                          isSmallScreen: isSmallScreen,
+                          exampleImagePath: 'assets/example_images/placa.jpeg',
                         ),
-                      ),
-                    if (_rendimiento.isNotEmpty)
+                        _buildResponsiveCameraButton(
+                          'Tomar Foto del Odómetro',
+                          'Tome una foto del odómetro del vehículo.',
+                          onPressed: () {
+                            _openCameraOrFilePicker((imageData) {
+                              _showImagePreviewDialog(imageData, (imageUrl) {
+                                setState(() {
+                                  _fotoOdometroUrl = imageUrl;
+                                });
+                              }, 'Foto Odómetro');
+                            });
+                          },
+                          isUploaded: _fotoOdometroUrl != null,
+                          imageUrl: _fotoOdometroUrl,
+                          isSmallScreen: isSmallScreen,
+                          exampleImagePath:
+                              'assets/example_images/odometro.jpg',
+                        ),
+                      ],
+
                       Padding(
-                        padding: EdgeInsets.only(
-                            bottom: isSmallScreen ? 12.0 : 16.0),
-                        child: Text(
-                          _rendimiento,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: _rendimiento.contains('No es posible')
-                                ? Colors.red
-                                : Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 20.0),
+                        child: ElevatedButton(
+                          onPressed: _enviarFormulario,
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 40, vertical: 15),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                            elevation: 5,
+                            backgroundColor: Color(0xFFC0261F),
                           ),
+                          child: Text('Enviar',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 18)),
                         ),
                       ),
-                    _buildTextField(
-                      controller: _folioTicketController,
-                      label: 'Folio del Ticket',
-                      keyboardType: TextInputType.text,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Ingrese el folio del ticket';
-                        }
-                        return null;
-                      },
-                      onChanged: _validateFolioTicket,
-                      isValid: _isFolioTicketValid,
-                      focusNode: _folioTicketFocusNode,
-                      description:
-                          'Ingrese el folio del ticket de la compra de combustible.',
-                      isSmallScreen: isSmallScreen,
-                    ),
-                    _buildResponsiveCameraButton(
-                      'Tomar Foto del Odómetro',
-                      'Tome una foto del odómetro del vehículo. (Foto legible)',
-                      onPressed: () {
-                        _openCameraOrFilePicker((imageData) {
-                          _showImagePreviewDialog(imageData, (imageUrl) {
-                            setState(() {
-                              _fotoOdometroUrl = imageUrl;
-                            });
-                          }, 'Foto Odómetro');
-                        });
-                      },
-                      isUploaded: _fotoOdometroUrl != null,
-                      imageUrl: _fotoOdometroUrl,
-                      isSmallScreen: isSmallScreen,
-                      exampleImagePath:
-                          'assets/example_images/odometro.jpg', // Ruta de la imagen de ejemplo
-                    ),
-
-                    _buildResponsiveCameraButton(
-                      'Tomar Foto del Ticket',
-                      'Tome una foto del ticket de la compra de combustible. (Foto legible)',
-                      onPressed: () {
-                        _openCameraOrFilePicker((imageData) {
-                          _showImagePreviewDialog(imageData, (imageUrl) {
-                            setState(() {
-                              _fotoTicketUrl = imageUrl;
-                            });
-                          }, 'Foto Ticket');
-                        });
-                      },
-                      isUploaded: _fotoTicketUrl != null,
-                      imageUrl: _fotoTicketUrl,
-                      isSmallScreen: isSmallScreen,
-                      exampleImagePath:
-                          'assets/example_images/foto.jpg', // Ruta de la imagen de ejemplo
-                    ),
-
-                    _buildResponsiveCameraButton(
-                      'Tomar Foto de la Unidad',
-                      'Tome una foto de la unidad en la gasolinera. (Foto donde se vean las placas)',
-                      onPressed: () {
-                        _openCameraOrFilePicker((imageData) {
-                          _showImagePreviewDialog(imageData, (imageUrl) {
-                            setState(() {
-                              _fotoUnidadUrl = imageUrl;
-                            });
-                          }, 'Foto Unidad');
-                        });
-                      },
-                      isUploaded: _fotoUnidadUrl != null,
-                      imageUrl: _fotoUnidadUrl,
-                      isSmallScreen: isSmallScreen,
-                      exampleImagePath:
-                          'assets/example_images/unidad.jpg', // Ruta de la imagen de ejemplo
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20.0),
-                      child: ElevatedButton(
-                        onPressed: _enviarFormulario,
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 40, vertical: 15),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                          elevation: 5,
-                          backgroundColor: Color(0xFFC0261F),
-                        ),
-                        child: Text('Enviar',
-                            style:
-                                TextStyle(color: Colors.white, fontSize: 18)),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVehicleOption(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _tipoVehiculo = value;
+          _showVehicleSelectionDialog = false;
+
+          // Limpiar campos específicos cuando no son para Camioneta
+          if (value != 'Camioneta') {
+            _placasController.clear();
+            _odometroController.clear();
+            _odometroUltimoController.clear();
+            _fotoPlacasUrl = null;
+            _fotoOdometroUrl = null;
+            _diferenciaKilometros = '';
+            _rendimiento = '';
+          }
+        });
+        Navigator.of(context).pop();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Se ha seleccionado: $label'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      },
+      child: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 40, color: Color(0xFFC0261F)),
+            SizedBox(width: 16),
+            Text(label, style: TextStyle(fontSize: 18)),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildTextField({
@@ -1577,6 +1811,61 @@ class _ReportePageState extends State<ReportePage> {
     );
   }
 
+  Widget _buildDropdownContrato({
+    String? label,
+    String? description,
+    required bool isSmallScreen,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: isSmallScreen ? 12.0 : 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InputDecorator(
+            decoration: InputDecoration(
+              labelText: label ?? 'Contrato',
+              border: OutlineInputBorder(),
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_isContratoValid)
+                    Icon(Icons.check_circle, color: Colors.green),
+                  IconButton(
+                    icon: Icon(Icons.help_outline, color: Colors.grey),
+                    onPressed: () => _mostrarDescripcion(description ??
+                        'Seleccione el contrato correspondiente.'),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(),
+                    iconSize: isSmallScreen ? 20 : 24,
+                  ),
+                ],
+              ),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _contratoSeleccionado,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _contratoSeleccionado = newValue;
+                    _validateContrato(newValue);
+                  });
+                },
+                items: _contratos.map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void showLoadingDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -1704,14 +1993,28 @@ class _ReportePageState extends State<ReportePage> {
         _isTipoGasolinaValid &&
         _isImporteValid &&
         _isLitrosValid &&
-        _isOdometroValid &&
-        _isFolioTicketValid &&
-        _fotoPlacasUrl != null &&
-        _fotoUnidadUrl != null &&
-        _fotoTicketUrl != null &&
-        _fotoOdometroUrl != null) {
+        _isContratoValid &&
+        _isFolioTicketValid) {
       // Mostrar el diálogo de carga
-      showLoadingDialog(context);
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SpinKitFadingCircle(
+                  color: Colors.blue,
+                  size: 50.0,
+                ),
+                SizedBox(height: 20),
+                Text('Enviando Reporte...'),
+              ],
+            ),
+          );
+        },
+      );
 
       try {
         final airtableApiToken =
@@ -1721,160 +2024,247 @@ class _ReportePageState extends State<ReportePage> {
         final url =
             'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
 
-        final response = await http.post(
-          Uri.parse(url),
-          headers: {
-            'Authorization': 'Bearer $airtableApiToken',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({
-            "fields": {
-              "Nombre Operador": _operadorSeleccionado,
-              "Nombre Gasolinera": _gasolineraController.text,
-              "Gasolina": _tipoGasolina,
-              "Fecha": _fechaHoy,
-              "Hora": _horaActual,
-              "Placas": _placasController.text,
-              "Importe": double.parse(_importeController.text),
-              "Litros": double.parse(_litrosController.text),
-              "Precio Litros": double.parse(_precioPorLitro),
-              "Odometro": int.parse(_odometroController.text),
-              "Diferencia Kilometros":
-                  int.parse(_diferenciaKilometros.replaceAll(' km', '')),
-              "Rendimiento": _rendimiento.contains('Rendimiento')
-                  ? double.parse(_rendimiento
-                      .replaceAll('Rendimiento: ', '')
-                      .replaceAll(' km/L', ''))
-                  : null,
-              "Folio Ticket": _folioTicketController.text,
-              "Foto Placas": [
-                {
-                  "url": _fotoPlacasUrl,
-                }
-              ],
-              "Foto Unidad": [
-                {
-                  "url": _fotoUnidadUrl,
-                }
-              ],
-              "Foto Ticket": [
-                {
-                  "url": _fotoTicketUrl,
-                }
-              ],
-              "Foto Odometro": [
-                {
-                  "url": _fotoOdometroUrl,
-                }
-              ],
-            },
-          }),
-        );
-        // Cerrar el diálogo de carga
+        // 1. Preparar los datos
+        Map<String, dynamic> fields = {
+          "Contrato": _contratoSeleccionado,
+          "Nombre Operador": _operadorSeleccionado,
+          "Nombre Gasolinera": _gasolineraController.text,
+          "Gasolina": _tipoGasolina,
+          "Fecha": DateFormat('yyyy-MM-dd').format(DateTime.now()),
+          "Hora": _horaActual,
+          "Folio Ticket": _folioTicketController.text,
+          "Importe": double.parse(_importeController.text),
+          "Litros": double.parse(_litrosController.text),
+          "Precio Litros": double.parse(_precioPorLitro),
+          "Tipo Vehiculo": _tipoVehiculo,
+        };
+
+        // Campos específicos por tipo de vehículo
+        if (_tipoVehiculo == 'Camioneta') {
+          fields.addAll({
+            "Placas": _placasController.text,
+            "Odometro": int.parse(_odometroController.text),
+            "Diferencia Kilometros": _diferenciaKilometros.isNotEmpty
+                ? int.parse(_diferenciaKilometros.replaceAll(' km', ''))
+                : 0,
+            "Rendimiento": _rendimiento.contains('Rendimiento')
+                ? double.parse(_rendimiento
+                    .replaceAll('Rendimiento: ', '')
+                    .replaceAll(' km/L', ''))
+                : null,
+          });
+        } else {
+          fields.addAll({
+            "Placas": "N/A",
+            "Odometro": 0,
+            "Diferencia Kilometros": 0,
+            "Rendimiento": 0,
+          });
+        }
+
+        // Agregar fotos
+        _agregarFotosAFields(fields);
+
+        // 2. Crear cuerpo de la petición
+        final body = {
+          "records": [
+            {"fields": fields}
+          ]
+        };
+
+        // 3. Log detallado antes de enviar
+        _logDatosParaEnvio(fields, body);
+
+        // 4. Enviar petición
+        final response = await http
+            .post(
+              Uri.parse(url),
+              headers: {
+                'Authorization': 'Bearer $airtableApiToken',
+                'Content-Type': 'application/json',
+              },
+              body: jsonEncode(body),
+            )
+            .timeout(Duration(seconds: 30));
+
+        // 5. Cerrar diálogo de carga
         Navigator.of(context).pop();
 
         if (response.statusCode == 200) {
-          // Mostrar ventana emergente de éxito
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: Text('Éxito'),
-                content: Text('La información se ha subido correctamente.'),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Cerrar el diálogo
-                    },
-                    child: Text('OK'),
-                  ),
-                ],
-              );
-            },
-          );
+          _mostrarExito();
+          _limpiarFormulario();
 
-          // Cerrar el teclado si está abierto
-          FocusScope.of(context).unfocus();
-
-          // Limpiar el formulario después de enviar, excepto los campos por defecto
-          _formKey.currentState!.reset(); // Limpiar todos los campos
-          setState(() {
-            // Restablecer los campos que no son por defecto
-            _operadorSeleccionado = null;
-            _gasolineraController.text =
-                'GASOLINERA LOS TOROS'; // Valor por defecto
-            _tipoGasolina = null;
-            _placasController.clear();
-            _importeController.clear();
-            _litrosController.clear();
-            _odometroController.clear();
-            _folioTicketController
-                .clear(); // Limpiar el campo del folio del ticket
-            _fotoPlacasUrl = null;
-            _fotoUnidadUrl = null;
-            _fotoTicketUrl = null;
-            _fotoOdometroUrl = null;
-            _precioPorLitro = '';
-            _diferenciaKilometros = '';
-
-            // Restablecer los estados de validación
-            _isOperadorValid = false;
-            _isGasolineraValid = false;
-            _isTipoGasolinaValid = false;
-            _isImporteValid = false;
-            _isLitrosValid = false;
-            _isOdometroValid = false;
-            _isFolioTicketValid = false;
-            _isPlacasValid = false;
-          });
+          // Mostrar diálogo de opciones después del éxito
+          await _mostrarOpcionesDespuesEnvio();
         } else {
-          // Error al enviar los datos
-          print(
-              'Error al enviar el reporte. Código de estado: ${response.statusCode}');
-          print('Respuesta del servidor: ${response.body}');
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content:
-                  Text('Error al enviar el reporte: ${response.statusCode}'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          _manejarErrorRespuesta(response);
         }
-      } catch (e) {
-        // Cerrar el diálogo de carga
+      } on TimeoutException {
         Navigator.of(context).pop();
-
-        // Error de conexión
-        print('Error de conexión: $e');
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error de conexión: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _mostrarError('Tiempo de espera agotado. Intente nuevamente.');
+      } catch (e, stackTrace) {
+        Navigator.of(context).pop();
+        _mostrarError('Error inesperado: ${e.toString()}');
+        print('════════════════ ERROR ════════════════');
+        print('Tipo de error: ${e.runtimeType}');
+        print('Mensaje: ${e.toString()}');
+        print('Stack trace: $stackTrace');
+        print('════════════════════════════════════════');
       }
     } else {
-      // Mostrar un mensaje de error si no todos los campos están llenos
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Error'),
-            content:
-                Text('Por favor, complete todos los campos correctamente.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
+      _mostrarError('Por favor complete todos los campos correctamente');
     }
+  }
+
+  Future<void> _mostrarOpcionesDespuesEnvio() async {
+    final result = await showDialog<int>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Reporte enviado con éxito'),
+          content: Text('¿Qué deseas hacer ahora?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(1), // Nuevo reporte
+              child: Text('Capturar otro reporte'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(2), // Menú principal
+              child: Text('Regresar al menú'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == 1) {
+      // Volver a mostrar el diálogo de selección de vehículo
+      setState(() {
+        _showVehicleSelectionDialog = true;
+      });
+    } else if (result == 2) {
+      // Regresar al menú principal
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _agregarFotosAFields(Map<String, dynamic> fields) {
+    if (_fotoTicketUrl != null) {
+      fields["Foto Ticket"] = [
+        {"url": _fotoTicketUrl, "filename": "ticket.jpg"}
+      ];
+    }
+    if (_fotoUnidadUrl != null) {
+      fields["Foto Unidad"] = [
+        {"url": _fotoUnidadUrl, "filename": "unidad.jpg"}
+      ];
+    }
+    if (_tipoVehiculo == 'Camioneta') {
+      if (_fotoPlacasUrl != null) {
+        fields["Foto Placas"] = [
+          {"url": _fotoPlacasUrl, "filename": "placas.jpg"}
+        ];
+      }
+      if (_fotoOdometroUrl != null) {
+        fields["Foto Odometro"] = [
+          {"url": _fotoOdometroUrl, "filename": "odometro.jpg"}
+        ];
+      }
+    }
+  }
+
+  void _logDatosParaEnvio(
+      Map<String, dynamic> fields, Map<String, dynamic> body) {
+    print('════════════════ DATOS A ENVIAR ════════════════');
+    print('📋 Campos:');
+    fields.forEach((key, value) {
+      print('  • $key: ${value.toString()} (Tipo: ${value.runtimeType})');
+    });
+
+    print('\n🔠 JSON completo:');
+    print(jsonEncode(body));
+    print('════════════════════════════════════════════════');
+  }
+
+  void _manejarErrorRespuesta(http.Response response) {
+    print('════════════════ ERROR RESPONSE ════════════════');
+    print('Status Code: ${response.statusCode}');
+    print('Response Body: ${response.body}');
+    print('════════════════════════════════════════════════');
+
+    String mensajeError = 'Error al enviar el reporte (${response.statusCode})';
+
+    try {
+      final errorJson = jsonDecode(response.body);
+      if (errorJson['error'] != null) {
+        mensajeError += '\nTipo: ${errorJson['error']['type']}';
+        mensajeError += '\nMensaje: ${errorJson['error']['message']}';
+      }
+    } catch (e) {
+      print('Error al parsear respuesta de error: $e');
+    }
+
+    _mostrarError(mensajeError);
+  }
+
+  void _mostrarExito() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('✅ Reporte enviado correctamente'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _limpiarFormulario() {
+    setState(() {
+      // Limpiar controladores
+      _operadorSeleccionado = null;
+      _gasolineraController.text = 'GASOLINERA LOS TOROS';
+      _importeController.clear();
+      _litrosController.clear();
+      _precioPorLitro = '';
+      _tipoGasolina = null;
+      _folioTicketController.clear();
+      _placasController.clear();
+      _odometroController.clear();
+      _odometroUltimoController.clear();
+
+      // Limpiar imágenes
+      _fotoPlacasUrl = null;
+      _fotoUnidadUrl = null;
+      _fotoTicketUrl = null;
+      _fotoOdometroUrl = null;
+
+      // Limpiar cálculos
+      _diferenciaKilometros = '';
+      _rendimiento = '';
+
+      // Restablecer validaciones
+      _isOperadorValid = false;
+      _isGasolineraValid = true;
+      _isImporteValid = false;
+      _isLitrosValid = false;
+      _isTipoGasolinaValid = false;
+      _isFolioTicketValid = false;
+      _isPlacasValid = false;
+      _isOdometroValid = false;
+      _isContratoValid = false;
+
+      // Mantener el tipo de vehículo para no tener que seleccionarlo de nuevo
+      // _tipoVehiculo se mantiene
+    });
+  }
+
+  void _mostrarError(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('❌ $mensaje'),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 5),
+      ),
+    );
   }
 }
