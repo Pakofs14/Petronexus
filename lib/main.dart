@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:petronexus/reporte.dart';
 import 'package:petronexus/desglose.dart';
 import 'package:petronexus/entrada.dart'; // Asegúrate de crear este archivo
-import 'package:petronexus/salida.dart';   // Asegúrate de crear este archivo
+import 'package:petronexus/salida.dart'; // Asegúrate de crear este archivo
 
 void main() => runApp(MyApp());
 
@@ -47,10 +47,12 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _cargarUsuariosDesdeAirtable() async {
-    final airtableApiToken = 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
+    final airtableApiToken =
+        'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
     final airtableBaseId = 'appk2qomcs0VaYbCD';
     final airtableTableName = 'Contraseñas';
-    final url = 'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
+    final url =
+        'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
 
     try {
       final response = await http.get(
@@ -70,9 +72,11 @@ class _MyHomePageState extends State<MyHomePage> {
           final usuario = record['fields']['Usuario'];
           final password = record['fields']['Password'];
           final permisoSubir = record['fields']['Permiso Subir'] == 'Si';
-          final permisoDescargar = record['fields']['Permiso Descargar'] == 'Si';
+          final permisoDescargar =
+              record['fields']['Permiso Descargar'] == 'Si';
           final permisoPassword = record['fields']['Permiso Password'] == 'Si';
-          final permisoAlmacen = record['fields']['Permiso Almacen'] == 'Si'; // Nuevo permiso
+          final permisoAlmacen =
+              record['fields']['Permiso Almacen'] == 'Si'; // Nuevo permiso
 
           if (usuario != null && password != null) {
             _usuarios[usuario] = {
@@ -87,14 +91,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
         setState(() {});
       } else {
-        throw Exception('Error al obtener datos de Airtable: ${response.statusCode}');
+        throw Exception(
+            'Error al obtener datos de Airtable: ${response.statusCode}');
       }
     } catch (e) {
       print('Error de conexión: $e');
     }
   }
 
-  void _mostrarDialogoLogin(BuildContext context, {String? permiso, Widget? page, String? customMessage}) {
+  void _mostrarDialogoLogin(BuildContext context,
+      {String? permiso, Widget? page, String? customMessage}) {
     final TextEditingController _usernameController = TextEditingController();
     final TextEditingController _passwordController = TextEditingController();
     bool _obscureText = true;
@@ -112,7 +118,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   if (customMessage != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 10),
-                      child: Text(customMessage, style: TextStyle(color: Colors.red)),
+                      child: Text(customMessage,
+                          style: TextStyle(color: Colors.red)),
                     ),
                   TextFormField(
                     controller: _usernameController,
@@ -129,7 +136,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscureText ? Icons.visibility : Icons.visibility_off,
+                          _obscureText
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                           color: Colors.grey,
                         ),
                         onPressed: () {
@@ -178,7 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       if (_usuarios[username]!['password'] == password) {
                         _usuarioActual = username;
                         Navigator.of(context).pop();
-                        
+
                         if (permiso != null && page != null) {
                           _verificarPermiso(permiso, page);
                         }
@@ -218,7 +227,8 @@ class _MyHomePageState extends State<MyHomePage> {
         builder: (context) {
           return AlertDialog(
             title: const Text('Acceso Denegado'),
-            content: const Text('No tienes permiso para acceder a esta sección.'),
+            content:
+                const Text('No tienes permiso para acceder a esta sección.'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -253,7 +263,8 @@ class _MyHomePageState extends State<MyHomePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Función no disponible'),
-          content: Text(mensaje ?? 'Esta función estará disponible próximamente.'),
+          content:
+              Text(mensaje ?? 'Esta función estará disponible próximamente.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -311,14 +322,16 @@ class _MyHomePageState extends State<MyHomePage> {
                   leading: const Icon(FontAwesomeIcons.upload),
                   title: const Text('Subir carga de gasolina'),
                   onTap: () {
-                    _mostrarDialogoLogin(context, permiso: 'subir', page: ReportePage());
+                    _mostrarDialogoLogin(context,
+                        permiso: 'subir', page: ReportePage());
                   },
                 ),
                 ListTile(
                   leading: const Icon(FontAwesomeIcons.fileAlt),
                   title: const Text('Reportes de gasolina'),
                   onTap: () {
-                    _mostrarDialogoLogin(context, permiso: 'descargar', page: DesglosePage());
+                    _mostrarDialogoLogin(context,
+                        permiso: 'descargar', page: DesglosePage());
                   },
                 ),
               ],
@@ -375,7 +388,8 @@ class _MyHomePageState extends State<MyHomePage> {
               leading: const Icon(Icons.people),
               title: const Text('Usuarios'),
               onTap: () {
-                _mostrarDialogoLogin(context, permiso: 'contraseñas', page: PasswordPage());
+                _mostrarDialogoLogin(context,
+                    permiso: 'contraseñas', page: PasswordPage());
               },
             ),
           ],

@@ -17,10 +17,12 @@ class _PasswordPageState extends State<PasswordPage> {
   }
 
   Future<void> _cargarUsuariosDesdeAirtable() async {
-    final airtableApiToken = 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
+    final airtableApiToken =
+        'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
     final airtableBaseId = 'appk2qomcs0VaYbCD';
     final airtableTableName = 'Contraseñas';
-    final url = 'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
+    final url =
+        'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
 
     try {
       final response = await http.get(
@@ -47,18 +49,22 @@ class _PasswordPageState extends State<PasswordPage> {
           }).toList();
         });
       } else {
-        throw Exception('Error al obtener datos de Airtable: ${response.statusCode}');
+        throw Exception(
+            'Error al obtener datos de Airtable: ${response.statusCode}');
       }
     } catch (e) {
       print('Error de conexión: $e');
     }
   }
 
-  Future<void> _crearUsuarioEnAirtable(Map<String, dynamic> nuevoUsuario) async {
-    final airtableApiToken = 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
+  Future<void> _crearUsuarioEnAirtable(
+      Map<String, dynamic> nuevoUsuario) async {
+    final airtableApiToken =
+        'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
     final airtableBaseId = 'appk2qomcs0VaYbCD';
     final airtableTableName = 'Contraseñas';
-    final url = 'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
+    final url =
+        'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
 
     try {
       final response = await http.post(
@@ -91,10 +97,12 @@ class _PasswordPageState extends State<PasswordPage> {
   }
 
   Future<void> _eliminarUsuarioEnAirtable(String recordId) async {
-    final airtableApiToken = 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
+    final airtableApiToken =
+        'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
     final airtableBaseId = 'appk2qomcs0VaYbCD';
     final airtableTableName = 'Contraseñas';
-    final url = 'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName/$recordId';
+    final url =
+        'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName/$recordId';
 
     try {
       final response = await http.delete(
@@ -169,7 +177,8 @@ class _PasswordPageState extends State<PasswordPage> {
                   onChanged: (value) {
                     permisoDescargar = value!;
                   },
-                  decoration: const InputDecoration(labelText: 'Permiso Descargar'),
+                  decoration:
+                      const InputDecoration(labelText: 'Permiso Descargar'),
                 ),
                 DropdownButtonFormField<bool>(
                   value: permisoPassword,
@@ -180,7 +189,8 @@ class _PasswordPageState extends State<PasswordPage> {
                   onChanged: (value) {
                     permisoPassword = value!;
                   },
-                  decoration: const InputDecoration(labelText: 'Permiso Contraseñas'),
+                  decoration:
+                      const InputDecoration(labelText: 'Permiso Contraseñas'),
                 ),
               ],
             ),
@@ -213,7 +223,8 @@ class _PasswordPageState extends State<PasswordPage> {
     );
   }
 
-  void _mostrarDialogoEditarPermisos(BuildContext context, Map<String, dynamic> usuario) {
+  void _mostrarDialogoEditarPermisos(
+      BuildContext context, Map<String, dynamic> usuario) {
     bool permisoSubir = usuario['permisoSubir'] ?? false;
     bool permisoDescargar = usuario['permisoDescargar'] ?? false;
     bool permisoPassword = usuario['permisoPassword'] ?? false;
@@ -247,7 +258,8 @@ class _PasswordPageState extends State<PasswordPage> {
                   onChanged: (value) {
                     permisoDescargar = value!;
                   },
-                  decoration: const InputDecoration(labelText: 'Permiso Descargar'),
+                  decoration:
+                      const InputDecoration(labelText: 'Permiso Descargar'),
                 ),
                 DropdownButtonFormField<bool>(
                   value: permisoPassword,
@@ -258,7 +270,8 @@ class _PasswordPageState extends State<PasswordPage> {
                   onChanged: (value) {
                     permisoPassword = value!;
                   },
-                  decoration: const InputDecoration(labelText: 'Permiso Contraseñas'),
+                  decoration:
+                      const InputDecoration(labelText: 'Permiso Contraseñas'),
                 ),
               ],
             ),
@@ -278,7 +291,8 @@ class _PasswordPageState extends State<PasswordPage> {
                   'permisoPassword': permisoPassword,
                 };
 
-                await _actualizarPermisosEnAirtable(usuario['id'], nuevosPermisos);
+                await _actualizarPermisosEnAirtable(
+                    usuario['id'], nuevosPermisos);
                 Navigator.of(context).pop();
               },
               child: const Text('Guardar'),
@@ -289,11 +303,14 @@ class _PasswordPageState extends State<PasswordPage> {
     );
   }
 
-  Future<void> _actualizarPermisosEnAirtable(String recordId, Map<String, dynamic> nuevosPermisos) async {
-    final airtableApiToken = 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
+  Future<void> _actualizarPermisosEnAirtable(
+      String recordId, Map<String, dynamic> nuevosPermisos) async {
+    final airtableApiToken =
+        'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
     final airtableBaseId = 'appk2qomcs0VaYbCD';
     final airtableTableName = 'Contraseñas';
-    final url = 'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName/$recordId';
+    final url =
+        'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName/$recordId';
 
     try {
       final response = await http.patch(
@@ -305,7 +322,8 @@ class _PasswordPageState extends State<PasswordPage> {
         body: jsonEncode({
           'fields': {
             'Permiso Subir': nuevosPermisos['permisoSubir'] ? 'Si' : 'No',
-            'Permiso Descargar': nuevosPermisos['permisoDescargar'] ? 'Si' : 'No',
+            'Permiso Descargar':
+                nuevosPermisos['permisoDescargar'] ? 'Si' : 'No',
             'Permiso Password': nuevosPermisos['permisoPassword'] ? 'Si' : 'No',
           },
         }),
@@ -332,13 +350,15 @@ class _PasswordPageState extends State<PasswordPage> {
     );
   }
 
-  void _mostrarDialogoConfirmacionEliminar(BuildContext context, String recordId) {
+  void _mostrarDialogoConfirmacionEliminar(
+      BuildContext context, String recordId) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirmar eliminación'),
-          content: const Text('¿Estás seguro de que deseas eliminar este usuario?'),
+          content:
+              const Text('¿Estás seguro de que deseas eliminar este usuario?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -351,80 +371,84 @@ class _PasswordPageState extends State<PasswordPage> {
                 await _eliminarUsuarioEnAirtable(recordId);
                 Navigator.of(context).pop();
               },
-              child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+              child:
+                  const Text('Eliminar', style: TextStyle(color: Colors.red)),
             ),
           ],
         );
       },
     );
   }
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Text('Usuarios y Contraseñas'),
-      backgroundColor: const Color(0xFFC0261F),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.add),
-          onPressed: () {
-            _mostrarDialogoCrearUsuario(context);
-          },
-        ),
-      ],
-    ),
-    body: _usuarios.isEmpty
-        ? Center(child: CircularProgressIndicator())
-        : SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('Usuario')),
-                  DataColumn(label: Text('Contraseña')),
-                  DataColumn(label: Text('Permiso Subir')),
-                  DataColumn(label: Text('Permiso Descargar')),
-                  DataColumn(label: Text('Permiso Contraseñas')),
-                  DataColumn(label: Text('Acciones')),
-                ],
-                rows: _usuarios.map((usuario) {
-                  return DataRow(cells: [
-                    DataCell(Text(usuario['usuario'] ?? '')),
-                    DataCell(Text(usuario['password'] ?? '')),
-                    DataCell(Text(usuario['permisoSubir'] ? 'Sí' : 'No')),
-                    DataCell(Text(usuario['permisoDescargar'] ? 'Sí' : 'No')),
-                    DataCell(Text(usuario['permisoPassword'] ? 'Sí' : 'No')),
-                    DataCell(
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () {
-                              _mostrarDialogoEditarPermisos(context, usuario);
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              _mostrarDialogoConfirmacionEliminar(context, usuario['id']);
-                            },
-                          ),
-                        ],
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Usuarios y Contraseñas'),
+        backgroundColor: const Color(0xFFC0261F),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              _mostrarDialogoCrearUsuario(context);
+            },
+          ),
+        ],
+      ),
+      body: _usuarios.isEmpty
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: const [
+                    DataColumn(label: Text('Usuario')),
+                    DataColumn(label: Text('Contraseña')),
+                    DataColumn(label: Text('Permiso Subir')),
+                    DataColumn(label: Text('Permiso Descargar')),
+                    DataColumn(label: Text('Permiso Contraseñas')),
+                    DataColumn(label: Text('Acciones')),
+                  ],
+                  rows: _usuarios.map((usuario) {
+                    return DataRow(cells: [
+                      DataCell(Text(usuario['usuario'] ?? '')),
+                      DataCell(Text(usuario['password'] ?? '')),
+                      DataCell(Text(usuario['permisoSubir'] ? 'Sí' : 'No')),
+                      DataCell(Text(usuario['permisoDescargar'] ? 'Sí' : 'No')),
+                      DataCell(Text(usuario['permisoPassword'] ? 'Sí' : 'No')),
+                      DataCell(
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () {
+                                _mostrarDialogoEditarPermisos(context, usuario);
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () {
+                                _mostrarDialogoConfirmacionEliminar(
+                                    context, usuario['id']);
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ]);
-                }).toList(),
+                    ]);
+                  }).toList(),
+                ),
               ),
             ),
-          ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: () {
-        _mostrarDialogoCrearUsuario(context); // Abre el diálogo para crear un nuevo usuario
-      },
-      child: const Icon(Icons.add), // Ícono de "+"
-      backgroundColor: const Color(0xFFC0261F), // Color del botón
-    ),
-  );
-}
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _mostrarDialogoCrearUsuario(
+              context); // Abre el diálogo para crear un nuevo usuario
+        },
+        child: const Icon(Icons.add), // Ícono de "+"
+        backgroundColor: const Color(0xFFC0261F), // Color del botón
+      ),
+    );
+  }
 }

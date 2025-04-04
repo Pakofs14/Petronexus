@@ -12,7 +12,8 @@ class _CatalogoPageState extends State<CatalogoPage> {
   List<dynamic> productos = [];
   List<dynamic> productosFiltrados = [];
   List<String> categorias = ['Todas'];
-  final String apiKey = 'patKImpJxmX6YYIRc.faa088790cc63690aae04a27756279e9b21d4a54cd43b2b83281f30205312a49';
+  final String apiKey =
+      'patKImpJxmX6YYIRc.faa088790cc63690aae04a27756279e9b21d4a54cd43b2b83281f30205312a49';
   final String baseId = 'appk2qomcs0VaYbCD';
   final String tableName = 'tblYM1pKpGBKYsrht';
   String _categoriaSeleccionada = 'Todas';
@@ -44,8 +45,10 @@ class _CatalogoPageState extends State<CatalogoPage> {
           _actualizarCategorias(); // Actualizar categorías después de cargar productos
         });
       } else {
-        debugPrint('Error al cargar los productos: ${response.statusCode} - ${response.body}');
-        throw Exception('Error al cargar los productos: ${response.statusCode}');
+        debugPrint(
+            'Error al cargar los productos: ${response.statusCode} - ${response.body}');
+        throw Exception(
+            'Error al cargar los productos: ${response.statusCode}');
       }
     } catch (error, stackTrace) {
       debugPrint('Excepción atrapada: $error');
@@ -63,18 +66,20 @@ class _CatalogoPageState extends State<CatalogoPage> {
     setState(() {
       categorias = [
         'Todas',
-        ...productos.map((producto) =>
-          producto['fields']['CATEGORIA'] != null
-              ? producto['fields']['CATEGORIA'].toString()
-              : 'Sin categoría'
-        ).toSet().toList()
+        ...productos
+            .map((producto) => producto['fields']['CATEGORIA'] != null
+                ? producto['fields']['CATEGORIA'].toString()
+                : 'Sin categoría')
+            .toSet()
+            .toList()
       ];
     });
   }
 
   void _ordenarPorClave() {
     setState(() {
-      productosFiltrados.sort((a, b) => a['fields']['CLAVE'].compareTo(b['fields']['CLAVE']));
+      productosFiltrados
+          .sort((a, b) => a['fields']['CLAVE'].compareTo(b['fields']['CLAVE']));
     });
   }
 
@@ -151,7 +156,8 @@ class _CatalogoPageState extends State<CatalogoPage> {
                 Expanded(
                   child: TextField(
                     controller: _claveController,
-                    focusNode: _focusNodeClave, // Asociar el foco con el TextField
+                    focusNode:
+                        _focusNodeClave, // Asociar el foco con el TextField
                     decoration: InputDecoration(
                       hintText: 'Buscar por clave',
                       filled: true,
@@ -162,14 +168,16 @@ class _CatalogoPageState extends State<CatalogoPage> {
                     ),
                     keyboardType: TextInputType.text,
                     autocorrect: true,
-                    onChanged: _buscarPorClave, // Llamar a la función al cambiar el texto
+                    onChanged:
+                        _buscarPorClave, // Llamar a la función al cambiar el texto
                   ),
                 ),
                 IconButton(
                   icon: Icon(Icons.search, color: Colors.white),
                   onPressed: () {
                     _buscarPorClave(_claveController.text);
-                    FocusScope.of(context).requestFocus(FocusNode()); // Perder el foco después de la búsqueda
+                    FocusScope.of(context).requestFocus(
+                        FocusNode()); // Perder el foco después de la búsqueda
                   },
                 ),
               ],
@@ -206,7 +214,8 @@ class _CatalogoPageState extends State<CatalogoPage> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(Icons.image_not_supported),
-                                    Text("Sin foto", style: TextStyle(fontSize: 10)),
+                                    Text("Sin foto",
+                                        style: TextStyle(fontSize: 10)),
                                   ],
                                 ),
                               ),
@@ -218,14 +227,16 @@ class _CatalogoPageState extends State<CatalogoPage> {
                           children: [
                             Text(
                               producto['NOMBRE'] ?? 'Sin nombre',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                             SizedBox(height: 4),
                             Text('Clave: ${producto['CLAVE'] ?? 'N/A'}'),
                             Text('Unidad: ${producto['UNIDAD'] ?? 'N/A'}'),
-                            Text('Categoría: ${producto['CATEGORIA'] ?? 'N/A'}'),
+                            Text(
+                                'Categoría: ${producto['CATEGORIA'] ?? 'N/A'}'),
                             Text(
                               'Descripción: ${producto['DESCRIPCION'] ?? 'Sin descripción'}',
                               maxLines: 2,
