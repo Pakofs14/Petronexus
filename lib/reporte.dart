@@ -28,6 +28,8 @@ class _ReportePageState extends State<ReportePage> {
 
   final List<String> _contratos = [
     '850',
+    '851',
+    '851 PANUCO',
     '853',
     '860',
     '870',
@@ -164,6 +166,14 @@ class _ReportePageState extends State<ReportePage> {
     'Ulises Eduardo Jimenez Lopez',
     'Vicente Herrera Gonzalez',
     'Zeferino de la Luna Perez',
+    // Operadores adicionales del documento original que no estaban en tu lista inicial
+    'Enrique Olguin Polanco',
+    'Ricardo Alberto Reyes Perez',
+    'Alvaro Vazquez Luna',
+    'Luis Enrique Fuentes Mendez',
+    'Ivan Alarcon Montelongo',
+    'Francisco Javier Cortez Gomez',
+    'Juan de Dios Rodriguez Lara',
   ];
 
   final List<String> _placasPredefinidas = [

@@ -28,24 +28,40 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
 
   // Instrucciones para cada campo
   final Map<String, String> _instrucciones = {
-    'folio': '1.- Anotar el número consecutivo en cada ocasión que se realice un movimiento.',
+    'folio':
+        '1.- Anotar el número consecutivo en cada ocasión que se realice un movimiento.',
     'proveedor': '2.- Anotar la razón social del Proveedor.',
-    'ordenCompra': '3.- Anotar el número de orden proporcionado por el sistema SAE.',
-    'departamento': '4.- Anotar el departamento que solicitó los artículos o productos.',
+    'ordenCompra':
+        '3.- Anotar el número de orden proporcionado por el sistema SAE.',
+    'departamento':
+        '4.- Anotar el departamento que solicitó los artículos o productos.',
     'usuarioSae': '5.- Anotar la clave de usuario del sistema SAE.',
-    'almacenDestino': '6.- Anotar el almacén destino en el cual serán resguardados los artículos o productos.',
-    'folioFactura': '7.- Anotar el folio de la factura generada por el Proveedor.',
-    'base': '8.- Indicar el nombre de la base desde la cual se está gestionando la entrada del material.',
-    'contrato': '9.- Anotar el número de contrato para el cual será ocupado el material.',
-    'fechaRecepcion': '10.- Anotar la fecha de recepción que se esta entregando el material.',
-    'recepcion': '11.- Anotar el número de recepción generada por el sistema SAE.',
-    'descripcion': '12.- Anotar el nombre de los materiales tal cual se menciona en la factura.',
-    'unidadMedida': '13.- Anotar la unidad de medida si son piezas, litros u otra unidad de medida.',
-    'precioUnitario': '14.- Anotar el costo unitario de cada artículo o producto.',
-    'cantidadSolicitada': '15.- Anotar la cantidad solicitada de acuerdo a las necesidades de la orden compra.',
-    'cantidadEntregada': '16.- Anotar la cantidad realmente entregada por parte del proveedor para cubrir la necesidad de la operación.',
-    'observaciones': '18.- Anotar en caso de ser necesario las condiciones o algún comentario referente a los artículos recibidos.',
-    'tipoPartida': '19.- Seleccionar el grupo correspondiente de los artículos a los que pertenecen los productos recibidos.',
+    'almacenDestino':
+        '6.- Anotar el almacén destino en el cual serán resguardados los artículos o productos.',
+    'folioFactura':
+        '7.- Anotar el folio de la factura generada por el Proveedor.',
+    'base':
+        '8.- Indicar el nombre de la base desde la cual se está gestionando la entrada del material.',
+    'contrato':
+        '9.- Anotar el número de contrato para el cual será ocupado el material.',
+    'fechaRecepcion':
+        '10.- Anotar la fecha de recepción que se esta entregando el material.',
+    'recepcion':
+        '11.- Anotar el número de recepción generada por el sistema SAE.',
+    'descripcion':
+        '12.- Anotar el nombre de los materiales tal cual se menciona en la factura.',
+    'unidadMedida':
+        '13.- Anotar la unidad de medida si son piezas, litros u otra unidad de medida.',
+    'precioUnitario':
+        '14.- Anotar el costo unitario de cada artículo o producto.',
+    'cantidadSolicitada':
+        '15.- Anotar la cantidad solicitada de acuerdo a las necesidades de la orden compra.',
+    'cantidadEntregada':
+        '16.- Anotar la cantidad realmente entregada por parte del proveedor para cubrir la necesidad de la operación.',
+    'observaciones':
+        '18.- Anotar en caso de ser necesario las condiciones o algún comentario referente a los artículos recibidos.',
+    'tipoPartida':
+        '19.- Seleccionar el grupo correspondiente de los artículos a los que pertenecen los productos recibidos.',
   };
 
   // Controladores para los campos del formulario
@@ -53,28 +69,34 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
   final TextEditingController _ordenCompraController = TextEditingController();
   final TextEditingController _departamentoController = TextEditingController();
   final TextEditingController _usuarioSaeController = TextEditingController();
-  final TextEditingController _almacenDestinoController = TextEditingController();
+  final TextEditingController _almacenDestinoController =
+      TextEditingController();
   final TextEditingController _folioFacturaController = TextEditingController();
   final TextEditingController _baseController = TextEditingController();
   final TextEditingController _contratoController = TextEditingController();
   final TextEditingController _recepcionController = TextEditingController();
 
-  //Nombre de quien recibe  
+  //Nombre de quien recibe
   final TextEditingController _nombreRecibeController = TextEditingController();
 
   // Controladores para partidas
   final TextEditingController _descripcionController = TextEditingController();
   final TextEditingController _unidadMedidaController = TextEditingController();
-  final TextEditingController _precioUnitarioController = TextEditingController();
-  final TextEditingController _cantidadSolicitadaController = TextEditingController();
-  final TextEditingController _cantidadEntregadaController = TextEditingController();
-  final TextEditingController _observacionesController = TextEditingController();
+  final TextEditingController _precioUnitarioController =
+      TextEditingController();
+  final TextEditingController _cantidadSolicitadaController =
+      TextEditingController();
+  final TextEditingController _cantidadEntregadaController =
+      TextEditingController();
+  final TextEditingController _observacionesController =
+      TextEditingController();
 
-  static const airtableApiToken = 'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
+  static const airtableApiToken =
+      'patW8Q98FkL4zObhH.c46b48da5580a5cb1ecfea2b24a2cd56f4be18a30bcba7b2e7747684f39352ec';
   static const airtableBaseId = 'appk2qomcs0VaYbCD';
   static const airtableTableName = 'Entradas';
-  static const url = 'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
-
+  static const url =
+      'https://api.airtable.com/v0/$airtableBaseId/$airtableTableName';
 
   @override
   void initState() {
@@ -84,7 +106,7 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
     _proveedorController.text = 'Bardahl de México S. de R.L. de C.V.';
     _tipoPartidaSeleccionada = 'ACEITE'; // Valor por defecto
     _unidadMedidaController.text = 'L';
-      // Configurar los controladores para convertir a mayúsculas
+    // Configurar los controladores para convertir a mayúsculas
     _configurarControladoresMayusculas();
   }
 
@@ -141,7 +163,7 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
         }
       });
     }
-    
+
     // Configurar controladores numéricos para evitar conflicto con las mayúsculas
     _precioUnitarioController.addListener(_validarNumero);
     _cantidadSolicitadaController.addListener(_validarNumero);
@@ -154,7 +176,7 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
       _cantidadSolicitadaController,
       _cantidadEntregadaController,
     ];
-    
+
     for (final controller in controladores) {
       final text = controller.text.replaceAll(RegExp(r'[^0-9.]'), '');
       if (controller.text != text) {
@@ -223,7 +245,7 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                     ),
                     onPressed: () => signatureController.clear(),
                   ),
-                  
+
                   // Botón para cancelar
                   ElevatedButton.icon(
                     icon: const Icon(Icons.cancel, size: 20),
@@ -234,7 +256,7 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  
+
                   // Botón para guardar
                   ElevatedButton.icon(
                     icon: const Icon(Icons.check, size: 20),
@@ -288,13 +310,14 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
       });
     }
   }
- 
+
   void _agregarPartida() {
-    if (_descripcionController.text.isEmpty || 
+    if (_descripcionController.text.isEmpty ||
         _cantidadEntregadaController.text.isEmpty ||
         _precioUnitarioController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Complete los campos obligatorios de la partida')),
+        const SnackBar(
+            content: Text('Complete los campos obligatorios de la partida')),
       );
       return;
     }
@@ -307,8 +330,8 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
         'precio': double.tryParse(_precioUnitarioController.text) ?? 0,
         'solicitada': double.tryParse(_cantidadSolicitadaController.text) ?? 0,
         'entregada': double.tryParse(_cantidadEntregadaController.text) ?? 0,
-        'total': (double.tryParse(_precioUnitarioController.text) ?? 0) * 
-                (double.tryParse(_cantidadEntregadaController.text) ?? 0),
+        'total': (double.tryParse(_precioUnitarioController.text) ?? 0) *
+            (double.tryParse(_cantidadEntregadaController.text) ?? 0),
         'observaciones': _observacionesController.text,
       });
 
@@ -383,7 +406,8 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('¿Agregar otra partida?'),
-        content: const Text('¿Desea agregar otra partida antes de generar el reporte?'),
+        content: const Text(
+            '¿Desea agregar otra partida antes de generar el reporte?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -405,9 +429,12 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
   Future<void> _generarPDF() async {
     try {
       // Validaciones iniciales (se mantienen igual)
-      if (_partidas.isEmpty) throw Exception('Debe agregar al menos una partida');
-      if (_firmaRecibe == null) throw Exception('Debe capturar la firma de quien recibe');
-      if (_nombreRecibeController.text.isEmpty) throw Exception('Ingrese el nombre completo de quien recibe');
+      if (_partidas.isEmpty)
+        throw Exception('Debe agregar al menos una partida');
+      if (_firmaRecibe == null)
+        throw Exception('Debe capturar la firma de quien recibe');
+      if (_nombreRecibeController.text.isEmpty)
+        throw Exception('Ingrese el nombre completo de quien recibe');
 
       // Preparar datos para Airtable (se mantiene igual)
       final Map<String, dynamic> datosGenerales = {
@@ -462,22 +489,23 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
               level: 0,
               child: pw.Column(
                 children: [
-                  pw.Text('ENTRADA DE ALMACÉN', 
-                      style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('ENTRADA DE ALMACÉN',
+                      style: pw.TextStyle(
+                          fontSize: 22, fontWeight: pw.FontWeight.bold)),
                   pw.SizedBox(height: 5),
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
-                      pw.Text('Fecha: ${_fechaController.text}', 
+                      pw.Text('Fecha: ${_fechaController.text}',
                           style: pw.TextStyle(fontSize: 16)),
-                      pw.Text('Folio: ${_folioController.text}', 
+                      pw.Text('Folio: ${_folioController.text}',
                           style: pw.TextStyle(fontSize: 16)),
                     ],
                   ),
                 ],
               ),
             ),
-            
+
             // Sección de Información General
             pw.SizedBox(height: 20),
             pw.Text('Información General', style: headerStyle),
@@ -501,7 +529,7 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                 ['No. Recepción:', datosGenerales['recepcion']],
               ],
             ),
-            
+
             // Sección de Partidas
             pw.SizedBox(height: 20),
             pw.Text('Detalle de Partidas', style: headerStyle),
@@ -509,18 +537,28 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
             pw.Table.fromTextArray(
               border: pw.TableBorder.all(),
               headerStyle: boldStyle,
-              headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
-              headers: ['Tipo', 'Descripción', 'Unidad', 'Precio Unitario', 'Cant. Ent.', 'Total'],
-              data: _partidas.map((partida) => [
-                partida['tipo'] ?? '',
-                partida['descripcion'] ?? '',
-                partida['unidad'] ?? '',
-                '\$${(partida['precio'] as double).toStringAsFixed(2)}',
-                partida['entregada'].toString(),
-                '\$${(partida['total'] as double).toStringAsFixed(2)}',
-              ]).toList(),
+              headerDecoration:
+                  const pw.BoxDecoration(color: PdfColors.grey300),
+              headers: [
+                'Tipo',
+                'Descripción',
+                'Unidad',
+                'Precio Unitario',
+                'Cant. Ent.',
+                'Total'
+              ],
+              data: _partidas
+                  .map((partida) => [
+                        partida['tipo'] ?? '',
+                        partida['descripcion'] ?? '',
+                        partida['unidad'] ?? '',
+                        '\$${(partida['precio'] as double).toStringAsFixed(2)}',
+                        partida['entregada'].toString(),
+                        '\$${(partida['total'] as double).toStringAsFixed(2)}',
+                      ])
+                  .toList(),
             ),
-            
+
             // Totales
             pw.SizedBox(height: 20),
             pw.Row(
@@ -532,29 +570,32 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                     pw.Row(
                       children: [
                         pw.Text('Subtotal: ', style: boldStyle),
-                        pw.Text('\$${subtotal.toStringAsFixed(2)}', style: normalStyle),
+                        pw.Text('\$${subtotal.toStringAsFixed(2)}',
+                            style: normalStyle),
                       ],
                     ),
                     pw.SizedBox(height: 5),
                     pw.Row(
                       children: [
                         pw.Text('IVA (16%): ', style: boldStyle),
-                        pw.Text('\$${iva.toStringAsFixed(2)}', style: normalStyle),
+                        pw.Text('\$${iva.toStringAsFixed(2)}',
+                            style: normalStyle),
                       ],
                     ),
                     pw.SizedBox(height: 5),
                     pw.Row(
                       children: [
                         pw.Text('TOTAL: ', style: boldStyle),
-                        pw.Text('\$${totalGeneral.toStringAsFixed(2)}', 
-                            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                        pw.Text('\$${totalGeneral.toStringAsFixed(2)}',
+                            style: pw.TextStyle(
+                                fontSize: 14, fontWeight: pw.FontWeight.bold)),
                       ],
                     ),
                   ],
                 ),
               ],
             ),
-            
+
             // Firmas
             pw.SizedBox(height: 30),
             pw.Text('FIRMAS', style: headerStyle),
@@ -574,22 +615,23 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                     pw.Text('Nombre y Firma', style: normalStyle),
                   ],
                 ),
-                
+
                 // Firma Recibe
                 pw.Column(
                   children: [
                     pw.Text('RECIBE', style: boldStyle),
                     pw.Container(
-                      width: 100,
-                      height: 50,
-                      child: pw.Image(pw.MemoryImage(_firmaRecibe!), 
-                      fit: pw.BoxFit.contain,
-                    )),
+                        width: 100,
+                        height: 50,
+                        child: pw.Image(
+                          pw.MemoryImage(_firmaRecibe!),
+                          fit: pw.BoxFit.contain,
+                        )),
                     pw.SizedBox(height: 5),
                     pw.Text(_nombreRecibeController.text, style: normalStyle),
                   ],
                 ),
-                
+
                 // Firma Vigilancia
                 pw.Column(
                   children: [
@@ -610,11 +652,12 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
       final bytes = await pdf.save();
       final blob = html.Blob([Uint8List.fromList(bytes)], 'application/pdf');
       final url = html.Url.createObjectUrlFromBlob(blob);
-      
+
       final anchor = html.document.createElement('a') as html.AnchorElement
         ..href = url
-        ..download = 'entrada_almacen_${_fechaController.text.replaceAll('/', '-')}.pdf';
-      
+        ..download =
+            'entrada_almacen_${_fechaController.text.replaceAll('/', '-')}.pdf';
+
       html.document.body?.children.add(anchor);
       anchor.click();
       html.document.body?.children.remove(anchor);
@@ -626,7 +669,6 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
           backgroundColor: Colors.green,
         ),
       );
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -636,7 +678,7 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
       );
     }
   }
-  
+
   Future<void> enviarEntradaAlmacen({
     required Map<String, dynamic> datosGenerales,
     required List<Map<String, dynamic>> partidas,
@@ -661,26 +703,34 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
       };
 
       final camposFaltantes = camposRequeridos.entries
-          .where((entry) => entry.value == null || entry.value.toString().trim().isEmpty)
+          .where((entry) =>
+              entry.value == null || entry.value.toString().trim().isEmpty)
           .map((entry) => entry.key)
           .toList();
 
       if (camposFaltantes.isNotEmpty) {
-        throw Exception('Campos obligatorios faltantes:\n${camposFaltantes.map((c) => '• $c').join('\n')}');
+        throw Exception(
+            'Campos obligatorios faltantes:\n${camposFaltantes.map((c) => '• $c').join('\n')}');
       }
 
       // 3. Convertir valores numéricos
-      final numeroOrdenCompra = int.tryParse(datosGenerales['ordenCompra'].toString()) ?? 0;
-      final numeroContrato = int.tryParse(datosGenerales['contrato']?.toString() ?? '') ?? 0;
-      final numeroRecepcion = int.tryParse(datosGenerales['recepcion']?.toString() ?? '') ?? 0;
-      final numeroFolioFactura = int.tryParse(datosGenerales['folioFactura'].toString()) ?? 0;
+      final numeroOrdenCompra =
+          int.tryParse(datosGenerales['ordenCompra'].toString()) ?? 0;
+      final numeroContrato =
+          int.tryParse(datosGenerales['contrato']?.toString() ?? '') ?? 0;
+      final numeroRecepcion =
+          int.tryParse(datosGenerales['recepcion']?.toString() ?? '') ?? 0;
+      final numeroFolioFactura =
+          int.tryParse(datosGenerales['folioFactura'].toString()) ?? 0;
 
       // 4. Validar partidas
       for (final partida in partidas) {
-        if (partida['descripcion'] == null || partida['descripcion'].toString().trim().isEmpty) {
+        if (partida['descripcion'] == null ||
+            partida['descripcion'].toString().trim().isEmpty) {
           throw Exception('Todas las partidas deben tener descripción');
         }
-        if (partida['entregada'] == null || (partida['entregada'] as num) <= 0) {
+        if (partida['entregada'] == null ||
+            (partida['entregada'] as num) <= 0) {
           throw Exception('La cantidad entregada debe ser mayor que cero');
         }
       }
@@ -716,10 +766,12 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
               'Fecha de recepcion': datosGenerales['fecha'].toString(),
               'Proveedor': datosGenerales['proveedor'].toString(),
               'Base/Zona': datosGenerales['base']?.toString() ?? '',
-              'Departamento solicitante': datosGenerales['departamento'].toString(),
+              'Departamento solicitante':
+                  datosGenerales['departamento'].toString(),
               'Usuario SAE': datosGenerales['usuarioSae'].toString(),
               'Almacen destino': datosGenerales['almacenDestino'].toString(),
-              'Nombre de quien recibe': datosGenerales['nombreRecibe'].toString(),
+              'Nombre de quien recibe':
+                  datosGenerales['nombreRecibe'].toString(),
               'Tipo de partida': partida['tipo']?.toString() ?? '',
               'Descripcion del bien': partida['descripcion'].toString(),
               'Unidad de medida': partida['unidad']?.toString() ?? '',
@@ -765,14 +817,14 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
   ''');
           }
         } catch (e) {
-          erroresPartidas.add('Error procesando partida "${partida['descripcion']}": $e');
+          erroresPartidas
+              .add('Error procesando partida "${partida['descripcion']}": $e');
         }
       }
 
       if (erroresPartidas.isNotEmpty) {
         throw Exception('Errores en partidas:\n${erroresPartidas.join('\n')}');
       }
-
     } catch (e) {
       throw Exception('''
   Error al enviar entrada de almacén:
@@ -785,7 +837,7 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
   ''');
     }
   }
-    
+
   Widget _buildFieldWithHelp({
     required String label,
     required String fieldKey,
@@ -795,7 +847,8 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
     bool readOnly = false,
     VoidCallback? onTap,
   }) {
-    return SizedBox( // Añade SizedBox
+    return SizedBox(
+      // Añade SizedBox
       width: double.infinity, // Ocupa todo el ancho disponible
       child: TextFormField(
         controller: controller,
@@ -821,21 +874,39 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
       ),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     // Lista de contratos predefinidos
-    final List<String> contratos = ['850', '853', '860', '870', '871', '801', '802', '819', '615'];
+    final List<String> contratos = [
+      '850',
+      '853',
+      '860',
+      '870',
+      '871',
+      '801',
+      '802',
+      '819',
+      '615'
+    ];
     // Lista de unidades de medida
-    final List<String> unidadesMedida = ['PZA', 'KG', 'L', 'M', 'M3', 'KIT', 'JUEGO'];
-    
+    final List<String> unidadesMedida = [
+      'PZA',
+      'KG',
+      'L',
+      'M',
+      'M3',
+      'KIT',
+      'JUEGO'
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Entrada Almacén', style: TextStyle(color: Colors.white)),
+        title: const Text('Entrada Almacén',
+            style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFFC0261F),
         iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-        ],
+        actions: [],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -908,7 +979,7 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                 ],
               ),
               const SizedBox(height: 10),
-              
+
               // Tercera fila de campos - Modificada para el contrato
               Row(
                 children: [
@@ -923,13 +994,16 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _contratoController.text.isEmpty ? null : _contratoController.text,
+                      value: _contratoController.text.isEmpty
+                          ? null
+                          : _contratoController.text,
                       decoration: InputDecoration(
                         labelText: 'No. de Contrato',
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.help_outline, size: 20),
-                          onPressed: () => _mostrarInstruccion(context, 'contrato'),
+                          onPressed: () =>
+                              _mostrarInstruccion(context, 'contrato'),
                         ),
                       ),
                       items: contratos.map((contrato) {
@@ -1009,22 +1083,29 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
               const SizedBox(height: 10),
               // Tipo de partida
               DropdownButtonFormField<String>(
-                value: _tipoPartidaSeleccionada, // Esto mostrará el valor por defecto
+                value:
+                    _tipoPartidaSeleccionada, // Esto mostrará el valor por defecto
                 decoration: InputDecoration(
                   labelText: 'Tipo de Partida',
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.help_outline, size: 20),
-                    onPressed: () => _mostrarInstruccion(context, 'tipoPartida'),
+                    onPressed: () =>
+                        _mostrarInstruccion(context, 'tipoPartida'),
                   ),
                 ),
                 items: const [
-                  DropdownMenuItem(value: 'MAQUINARIA', child: Text('Maquinaria')),
-                  DropdownMenuItem(value: 'HERRAMIENTAS', child: Text('Herramientas')),
-                  DropdownMenuItem(value: 'REFACCIONES', child: Text('Refacciones')),
-                  DropdownMenuItem(value: 'COMBUSTIBLE', child: Text('Combustible')),
+                  DropdownMenuItem(
+                      value: 'MAQUINARIA', child: Text('Maquinaria')),
+                  DropdownMenuItem(
+                      value: 'HERRAMIENTAS', child: Text('Herramientas')),
+                  DropdownMenuItem(
+                      value: 'REFACCIONES', child: Text('Refacciones')),
+                  DropdownMenuItem(
+                      value: 'COMBUSTIBLE', child: Text('Combustible')),
                   DropdownMenuItem(value: 'ACEITE', child: Text('Aceite')),
-                  DropdownMenuItem(value: 'ARTÍCULOS', child: Text('Artículos')),
+                  DropdownMenuItem(
+                      value: 'ARTÍCULOS', child: Text('Artículos')),
                 ],
                 onChanged: (value) {
                   setState(() {
@@ -1041,13 +1122,15 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                 controller: _descripcionController,
               ),
               const SizedBox(height: 10),
-              
+
               Row(
                 children: [
                   Expanded(
                     child: // En el Dropdown de unidades de medida, modificar así:
-                    DropdownButtonFormField<String>(
-                      value: _unidadMedidaController.text.isEmpty ? 'L' : _unidadMedidaController.text,
+                        DropdownButtonFormField<String>(
+                      value: _unidadMedidaController.text.isEmpty
+                          ? 'L'
+                          : _unidadMedidaController.text,
                       decoration: InputDecoration(
                         labelText: 'Unidad de Medida',
                         border: const OutlineInputBorder(),
@@ -1078,7 +1161,7 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                 ],
               ),
               const SizedBox(height: 10),
-              
+
               Row(
                 children: [
                   Expanded(
@@ -1112,7 +1195,9 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
               // Modificar el botón de agregar partida en el build:
               ElevatedButton(
                 onPressed: _agregarPartida,
-                child: Text(_partidas.isEmpty ? 'Agregar Partida' : 'Agregar Otra Partida'),
+                child: Text(_partidas.isEmpty
+                    ? 'Agregar Partida'
+                    : 'Agregar Otra Partida'),
               ),
               const SizedBox(height: 20),
 
@@ -1150,7 +1235,8 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('SUBTOTAL:', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('SUBTOTAL:',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
                             Text('\$${_calcularSubtotal().toStringAsFixed(2)}'),
                           ],
                         ),
@@ -1158,7 +1244,8 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('IVA (16%):', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('IVA (16%):',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
                             Text('\$${_calcularIva().toStringAsFixed(2)}'),
                           ],
                         ),
@@ -1166,9 +1253,11 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('TOTAL:', style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text('\$${_calcularTotal().toStringAsFixed(2)}', 
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                            const Text('TOTAL:',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text('\$${_calcularTotal().toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 18)),
                           ],
                         ),
                       ],
@@ -1192,7 +1281,8 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                 children: [
                   Column(
                     children: [
-                      const Text('PROVEEDOR', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('PROVEEDOR',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 50),
                       SizedBox(
                         width: 150,
@@ -1200,13 +1290,15 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                       ),
                       const Text('Nombre y Firma'),
                     ],
-                  ),            
+                  ),
                   Column(
                     children: [
-                      const Text('RECIBE', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('RECIBE',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                       if (_firmaRecibe != null)
                         Image.memory(_firmaRecibe!, height: 80),
-                      SizedBox( // Añade SizedBox para limitar el ancho
+                      SizedBox(
+                        // Añade SizedBox para limitar el ancho
                         width: 200, // o el ancho que prefieras
                         child: TextFormField(
                           controller: _nombreRecibeController,
@@ -1216,7 +1308,8 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                           ),
                           // Añade esto para preservar exactamente lo que el usuario escribe
                           keyboardType: TextInputType.text,
-                          textCapitalization: TextCapitalization.none, // No forzar mayúsculas
+                          textCapitalization:
+                              TextCapitalization.none, // No forzar mayúsculas
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Este campo es obligatorio';
@@ -1231,10 +1324,11 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                         child: const Text('Capturar Firma'),
                       ),
                     ],
-                  ),            
+                  ),
                   Column(
                     children: [
-                      const Text('VIGILANCIA', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('VIGILANCIA',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 50),
                       SizedBox(
                         width: 150,
@@ -1249,7 +1343,8 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => _validarYGenerarPDF(context), // Nueva función
+                  onPressed: () =>
+                      _validarYGenerarPDF(context), // Nueva función
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFC0261F),
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1258,7 +1353,6 @@ class _EntradaAlmacenPageState extends State<EntradaAlmacenPage> {
                 ),
               ),
               const SizedBox(height: 20),
-
             ],
           ),
         ),
